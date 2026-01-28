@@ -1,0 +1,73 @@
+/* HEADER ADMIN */
+.admin-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 20px;
+    margin-bottom: 30px;
+    border-radius: 8px;
+    color: white;
+}
+
+.header-top {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.btn-voltar {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 5px;
+    text-decoration: none;
+    font-weight: bold;
+    transition: all 0.3s;
+}
+
+.btn-voltar:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: translateX(-5px);
+}
+
+/* BOTÕES DE AÇÃO */
+.form-actions {
+    display: flex;
+    gap: 15px;
+    margin-top: 40px;
+    padding-top: 20px;
+    border-top: 2px solid #e0e0e0;
+}
+
+.btn-lg {
+    padding: 12px 30px;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+}
+
+.btn-secondary {
+    background: #f0f0f0;
+    color: #333;
+    border: 1px solid #ddd;
+    padding: 12px 30px;
+    border-radius: 5px;
+    text-decoration: none;
+    font-weight: bold;
+    transition: all 0.3s;
+}
+
+.btn-secondary:hover {
+    background: #e0e0e0;
+}

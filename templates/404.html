@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Página não encontrada - 404</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+        }
+
+        .container-404 {
+            text-align: center;
+            padding: 40px;
+        }
+
+        .error-code {
+            font-size: 120px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .error-title {
+            font-size: 36px;
+            margin-bottom: 20px;
+        }
+
+        .error-message {
+            font-size: 18px;
+            margin-bottom: 40px;
+            opacity: 0.9;
+        }
+
+        .btn-home {
+            display: inline-block;
+            padding: 12px 30px;
+            background: white;
+            color: #667eea;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: 600;
+            transition: transform 0.2s;
+        }
+
+        .btn-home:hover {
+            transform: translateY(-3px);
+        }
+
+        .icon {
+            font-size: 80px;
+            margin-bottom: 30px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-404">
+        <div class="icon">
+            <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        <div class="error-code">404</div>
+        <h1 class="error-title">Página não encontrada</h1>
+        <p class="error-message">Desculpe, a página que você está procurando não existe.</p>
+        <a href="{{ url_for('index') }}" class="btn-home">← Voltar ao início</a>
+    </div>
+</body>
+</html>
