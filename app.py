@@ -27,25 +27,6 @@ os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 # =============================================
 # INICIALIZAR BANCO DE DADOS
 # =============================================
-
-with app.app_context():
-    db.create_all()
-
-    # Criar usuário admin padrão
-    if not User.query.filter_by(username='admin').first():
-        admin = User(username='admin', email='admin@escritorio.com')
-        admin.set_password('admin123')
-        db.session.add(admin)
-        db.session.commit()
-        print("✅ Usuário admin criado!")
-        print("📝 Login: admin")
-        print("🔐 Senha: admin123")
-        print("⚠️  MUDE A SENHA APÓS O PRIMEIRO LOGIN!")
-
-   # ==========================================
-# INICIALIZAR BANCO DE DADOS
-# ==========================================
-
 def init_db():
     """Inicializa o banco de dados com dados padrão"""
     with app.app_context():
@@ -58,6 +39,9 @@ def init_db():
             db.session.add(admin)
             db.session.commit()
             print("✅ Usuário admin criado!")
+            print("📝 Login: admin")
+            print("🔐 Senha: admin123")
+            print("⚠️  MUDE A SENHA APÓS O PRIMEIRO LOGIN!")
 
         # Criar configuração padrão
         if not SiteConfig.query.first():
@@ -82,7 +66,12 @@ def init_db():
                 cor_gradiente_1="#667eea",
                 cor_gradiente_2="#764ba2",
                 foto_perfil="perfil.jpg",
-                imagem_fundo_hero="hero-bg.jpg"
+                imagem_fundo_hero="hero-bg.jpg",
+                titulo_sobre="Sobre NósMim",
+                anos_experiencia="5+",
+                casos_resolvidos="100+",
+                taxa_sucesso="97%",
+                sobre_nos_ativo=True
             )
             db.session.add(config_site)
             db.session.commit()
@@ -127,7 +116,6 @@ def init_db():
                     'icone': '👨‍👩‍👧‍👦'
                 }
             ]
-
             for area_data in areas_padrao:
                 area = AreaAtuacao(
                     titulo=area_data['titulo'],
@@ -144,8 +132,6 @@ def init_db():
 # =============================================
 # ROTAS PÚBLICAS (SITE)
 # =============================================
-
-
 @app.route('/')
 def index():
     config_site = SiteConfig.query.first()
@@ -153,7 +139,7 @@ def index():
     depoimentos = Depoimento.query.order_by(Depoimento.ordem).all()
     redes = RedeSocial.query.filter_by(ativo=True).order_by(RedeSocial.ordem).all()
     return render_template('index.html', config=config_site, areas=areas, 
-                           depoimentos=depoimentos, redes=redes)
+                         depoimentos=depoimentos, redes=redes)
 
 @app.route('/contato', methods=['POST'])
 def contato():
@@ -216,18 +202,14 @@ def contato():
 # =============================================
 # ROTAS DE AUTENTICAÇÃO
 # =============================================
-
-
 @app.route('/admin/login', methods=['GET', 'POST'])
 def admin_login():
     if current_user.is_authenticated:
         return redirect(url_for('admin_dashboard'))
-
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
         user = User.query.filter_by(username=username).first()
-
         if user and user.check_password(password):
             login_user(user, remember=request.form.get('remember'))
             registrar_auditoria(user.id, 'LOGIN', f'Usuário {username} realizou login')
@@ -235,7 +217,6 @@ def admin_login():
             return redirect(url_for('admin_dashboard'))
         else:
             flash('❌ Usuário ou senha incorretos!', 'danger')
-
     return render_template('admin/login.html')
 
 @app.route('/admin/logout')
@@ -249,7 +230,6 @@ def admin_logout():
 # =============================================
 # ROTAS DO PAINEL ADMIN
 # =============================================
-
 @app.route('/admin')
 @login_required
 def admin_dashboard():
@@ -259,7 +239,6 @@ def admin_dashboard():
     contatos_count = ContatoFormulario.query.count()
     contatos_nao_lidos = ContatoFormulario.query.filter_by(lido=False).count()
     logs_recentes = LogAuditoria.query.order_by(LogAuditoria.criado_em.desc()).limit(5).all()
-
     return render_template('admin/dashboard.html', 
                          config=config_site,
                          areas_count=areas_count,
@@ -272,7 +251,7 @@ def admin_dashboard():
 @login_required
 def admin_config():
     config_site = SiteConfig.query.first()
-    temas = Tema.query.filter_by(ativo=True).all()
+    temas = Tema.query.all()
     icones_areas = ICONES_AREAS
     icones_redes = ICONES_REDES_SOCIAIS
 
@@ -281,13 +260,8 @@ def admin_config():
         config_site.nome_escritorio = request.form.get('nome_escritorio')
         config_site.slogan = request.form.get('slogan')
         config_site.descricao_sobre = request.form.get('descricao_sobre')
-        
-
-        # Advogado
         config_site.nome_advogado = request.form.get('nome_advogado')
         config_site.oab = request.form.get('oab')
-
-        # Contato
         config_site.telefone = request.form.get('telefone')
         config_site.whatsapp = request.form.get('whatsapp')
         config_site.email = request.form.get('email')
@@ -296,13 +270,6 @@ def admin_config():
         config_site.cep = request.form.get('cep')
         config_site.horario_atendimento = request.form.get('horario_atendimento')
 
-        # Redes sociais
-        config_site.instagram = request.form.get('instagram')
-        config_site.facebook = request.form.get('facebook')
-        config_site.linkedin = request.form.get('linkedin')
-        config_site.youtube = request.form.get('youtube')
-        config_site.whatsapp_link = request.form.get('whatsapp_link')
-
         # Cores
         config_site.cor_primaria = request.form.get('cor_primaria', '#d4af37')
         config_site.cor_secundaria = request.form.get('cor_secundaria', '#1a1a2e')
@@ -310,43 +277,99 @@ def admin_config():
         config_site.cor_gradiente_1 = request.form.get('cor_gradiente_1', '#667eea')
         config_site.cor_gradiente_2 = request.form.get('cor_gradiente_2', '#764ba2')
 
-        # N8N Webhook
-        config_site.n8n_webhook_url = request.form.get('n8n_webhook_url', '')
+        # CAMPOS DE SOBRE NÓS - AQUI ESTÁ O PROBLEMA!
+        config_site.titulo_sobre = request.form.get('titulo_sobre', 'Sobre Nós')
+        config_site.anos_experiencia = request.form.get('anos_experiencia', '5+')
+        config_site.casos_resolvidos = request.form.get('casos_resolvidos', '100+')
+        config_site.taxa_sucesso = request.form.get('taxa_sucesso', '97%')
+
+        # ✅ CHECKBOX - AGORA FUNCIONA!
+        config_site.sobre_nos_ativo = 'sobre_nos_ativo' in request.form
 
         config_site.atualizado_em = datetime.utcnow()
         db.session.commit()
-
         registrar_auditoria(current_user.id, 'ATUALIZAR_CONFIG', 'Configurações do site atualizadas')
         flash('✅ Configurações atualizadas com sucesso!', 'success')
         return redirect(url_for('admin_config'))
 
-    return render_template('admin/configuracoes.html', 
-                         config=config_site, 
-                         temas=temas,
-                         icones_areas=icones_areas,
-                         icones_redes=icones_redes)
+    return render_template('admin/configuracoes.html', config=config_site, temas=temas, icones_areas=icones_areas, icones_redes=icones_redes)
+
+    config_site = SiteConfig.query.first()
+    temas = Tema.query.all()
+    icones_areas = ICONES_AREAS
+    icones_redes = ICONES_REDES_SOCIAIS
+
+    if request.method == 'POST':
+        # Mudar senha
+        if request.form.get('senha_atual') and request.form.get('senha_nova'):
+            senha_atual = request.form.get('senha_atual', '').strip()
+            senha_nova = request.form.get('senha_nova', '').strip()
+            senha_confirmacao = request.form.get('senha_confirmacao', '').strip()
+
+            if not current_user.check_password(senha_atual):
+                flash('❌ Senha atual incorreta!', 'danger')
+            elif senha_nova != senha_confirmacao:
+                flash('❌ As senhas não conferem!', 'danger')
+            elif len(senha_nova) < 6:
+                flash('❌ A senha deve ter pelo menos 6 caracteres!', 'danger')
+            else:
+                current_user.set_password(senha_nova)
+                db.session.commit()
+                registrar_auditoria(current_user.id, 'MUDAR_SENHA', 'Senha alterada com sucesso')
+                flash('✅ Senha alterada com sucesso!', 'success')
+
+        # Atualizar configurações
+        if request.form.get('nome_escritorio'):
+            config_site.nome_escritorio = request.form.get('nome_escritorio')
+            config_site.slogan = request.form.get('slogan')
+            config_site.descricao_sobre = request.form.get('descricao_sobre')
+            config_site.nome_advogado = request.form.get('nome_advogado')
+            config_site.oab = request.form.get('oab')
+            config_site.telefone = request.form.get('telefone')
+            config_site.whatsapp = request.form.get('whatsapp')
+            config_site.email = request.form.get('email')
+            config_site.endereco = request.form.get('endereco')
+            config_site.cidade = request.form.get('cidade')
+            config_site.cep = request.form.get('cep')
+            config_site.horario_atendimento = request.form.get('horario_atendimento')
+            config_site.cor_primaria = request.form.get('cor_primaria', '#d4af37')
+            config_site.cor_secundaria = request.form.get('cor_secundaria', '#1a1a2e')
+            config_site.cor_destaque = request.form.get('cor_destaque', '#16213e')
+            config_site.cor_gradiente_1 = request.form.get('cor_gradiente_1', '#667eea')
+            config_site.cor_gradiente_2 = request.form.get('cor_gradiente_2', '#764ba2')
+            config_site.n8n_webhook_url = request.form.get('n8n_webhook_url', '')
+            config_site.titulo_sobre = request.form.get('titulo_sobre', 'Sobre Nós')
+            config_site.descricao_sobre_completa = request.form.get('descricao_sobre_completa', '')
+            config_site.anos_experiencia = request.form.get('anos_experiencia', '20+')
+            config_site.casos_resolvidos = request.form.get('casos_resolvidos', '500+')
+            config_site.taxa_sucesso = request.form.get('taxa_sucesso', '97%')
+            config_site.sobre_nos_ativo = 'sobre_nos_ativo' in request.form
+
+            config_site.atualizado_em = datetime.utcnow()
+            db.session.commit()
+            registrar_auditoria(current_user.id, 'ATUALIZAR_CONFIG', 'Configurações do site atualizadas')
+            flash('✅ Configurações atualizadas com sucesso!', 'success')
+
+        return redirect(url_for('admin_config'))
+
+    return render_template('admin/configuracoes.html', config=config_site, temas=temas, icones_areas=icones_areas, icones_redes=icones_redes)
 
 @app.route('/admin/upload-imagem', methods=['POST'])
 @login_required
 def admin_upload_imagem():
     config_site = SiteConfig.query.first()
     tipo = request.form.get('tipo')
-
     if 'file' not in request.files:
         return jsonify({'sucesso': False, 'mensagem': '❌ Nenhum arquivo selecionado'}), 400
-
     file = request.files['file']
     filename, mensagem, sucesso = save_upload_file(file, tipo)
-
     if sucesso:
         if tipo == 'perfil':
             config_site.foto_perfil = filename
         elif tipo == 'hero':
             config_site.imagem_fundo_hero = filename
-
         config_site.atualizado_em = datetime.utcnow()
         db.session.commit()
-
         registrar_auditoria(current_user.id, 'UPLOAD_IMAGEM', f'Imagem {tipo} enviada')
         return jsonify({'sucesso': True, 'mensagem': mensagem, 'arquivo': filename})
     else:
@@ -357,7 +380,6 @@ def admin_upload_imagem():
 def admin_aplicar_tema(tema_id):
     tema = Tema.query.get_or_404(tema_id)
     config_site = SiteConfig.query.first()
-
     config_site.cor_primaria = tema.cor_primaria
     config_site.cor_secundaria = tema.cor_secundaria
     config_site.cor_destaque = tema.cor_destaque
@@ -365,9 +387,7 @@ def admin_aplicar_tema(tema_id):
     config_site.cor_gradiente_2 = tema.cor_gradiente_2
     config_site.tema_ativo = tema.nome
     config_site.atualizado_em = datetime.utcnow()
-
     db.session.commit()
-
     registrar_auditoria(current_user.id, 'APLICAR_TEMA', f'Tema {tema.nome} aplicado')
     flash(f'✅ Tema "{tema.nome}" aplicado com sucesso!', 'success')
     return redirect(url_for('admin_config'))
@@ -375,12 +395,10 @@ def admin_aplicar_tema(tema_id):
 # =============================================
 # ROTAS DE ÁREAS DE ATUAÇÃO
 # =============================================
-
 @app.route('/admin/areas', methods=['GET', 'POST'])
 @login_required
 def admin_areas():
     icones = ICONES_AREAS
-
     if request.method == 'POST':
         area = AreaAtuacao(
             icone=request.form.get('icone', '⚖️'),
@@ -392,11 +410,9 @@ def admin_areas():
         )
         db.session.add(area)
         db.session.commit()
-
         registrar_auditoria(current_user.id, 'CRIAR_AREA', f'Área {area.titulo} criada')
         flash(f'✅ Área "{area.titulo}" adicionada!', 'success')
         return redirect(url_for('admin_areas'))
-
     areas = AreaAtuacao.query.order_by(AreaAtuacao.ordem).all()
     return render_template('admin/areas.html', areas=areas, icones=icones)
 
@@ -405,19 +421,16 @@ def admin_areas():
 def admin_editar_area(id):
     area = AreaAtuacao.query.get_or_404(id)
     icones = ICONES_AREAS
-
     if request.method == 'POST':
         area.icone = request.form.get('icone')
         area.tipo_icone = request.form.get('tipo_icone')
         area.titulo = request.form.get('titulo')
         area.descricao = request.form.get('descricao')
         area.cor_icone = request.form.get('cor_icone')
-
         db.session.commit()
         registrar_auditoria(current_user.id, 'EDITAR_AREA', f'Área {area.titulo} editada')
         flash(f'✅ Área "{area.titulo}" atualizada!', 'success')
         return redirect(url_for('admin_areas'))
-
     return render_template('admin/editar_area.html', area=area, icones=icones)
 
 @app.route('/admin/areas/<int:id>/deletar', methods=['POST'])
@@ -427,7 +440,6 @@ def admin_deletar_area(id):
     titulo = area.titulo
     db.session.delete(area)
     db.session.commit()
-
     registrar_auditoria(current_user.id, 'DELETAR_AREA', f'Área {titulo} deletada')
     flash(f'✅ Área "{titulo}" removida!', 'success')
     return redirect(url_for('admin_areas'))
@@ -435,7 +447,6 @@ def admin_deletar_area(id):
 # =============================================
 # ROTAS DE DEPOIMENTOS
 # =============================================
-
 @app.route('/admin/depoimentos', methods=['GET', 'POST'])
 @login_required
 def admin_depoimentos():
@@ -454,11 +465,9 @@ def admin_depoimentos():
         )
         db.session.add(depoimento)
         db.session.commit()
-
         registrar_auditoria(current_user.id, 'CRIAR_DEPOIMENTO', f'Depoimento de {depoimento.nome} criado')
         flash(f'✅ Depoimento de "{depoimento.nome}" adicionado!', 'success')
         return redirect(url_for('admin_depoimentos'))
-
     depoimentos = Depoimento.query.order_by(Depoimento.ordem).all()
     return render_template('admin/depoimentos.html', depoimentos=depoimentos)
 
@@ -466,7 +475,6 @@ def admin_depoimentos():
 @login_required
 def admin_editar_depoimento(id):
     depoimento = Depoimento.query.get_or_404(id)
-
     if request.method == 'POST':
         depoimento.nome = request.form.get('nome')
         depoimento.profissao = request.form.get('profissao')
@@ -477,12 +485,10 @@ def admin_editar_depoimento(id):
         depoimento.icone = request.form.get('icone')
         depoimento.tipo_icone = request.form.get('tipo_icone')
         depoimento.cor_icone = request.form.get('cor_icone')
-
         db.session.commit()
         registrar_auditoria(current_user.id, 'EDITAR_DEPOIMENTO', f'Depoimento de {depoimento.nome} editado')
         flash(f'✅ Depoimento de "{depoimento.nome}" atualizado!', 'success')
         return redirect(url_for('admin_depoimentos'))
-
     return render_template('admin/editar_depoimento.html', depoimento=depoimento)
 
 @app.route('/admin/depoimentos/<int:id>/deletar', methods=['POST'])
@@ -492,7 +498,6 @@ def admin_deletar_depoimento(id):
     nome = depoimento.nome
     db.session.delete(depoimento)
     db.session.commit()
-
     registrar_auditoria(current_user.id, 'DELETAR_DEPOIMENTO', f'Depoimento de {nome} deletado')
     flash(f'✅ Depoimento de "{nome}" removido!', 'success')
     return redirect(url_for('admin_depoimentos'))
@@ -500,13 +505,11 @@ def admin_deletar_depoimento(id):
 # =============================================
 # ROTAS DE REDES SOCIAIS
 # =============================================
-
 @app.route('/admin/redes-sociais', methods=['GET', 'POST'])
 @login_required
 def admin_redes_sociais():
     config_site = SiteConfig.query.first()
     icones = ICONES_REDES_SOCIAIS
-
     if request.method == 'POST':
         # Redes sociais principais
         config_site.instagram = request.form.get('instagram', '')
@@ -519,14 +522,12 @@ def admin_redes_sociais():
         config_site.pinterest = request.form.get('pinterest', '')
         config_site.telegram = request.form.get('telegram', '')
         config_site.github = request.form.get('github', '')
-
         # Mais 5 redes sociais
         config_site.snapchat = request.form.get('snapchat', '')
         config_site.twitch = request.form.get('twitch', '')
         config_site.discord = request.form.get('discord', '')
         config_site.reddit = request.form.get('reddit', '')
         config_site.medium = request.form.get('medium', '')
-
         # Sites customizados
         config_site.site_customizado_1_nome = request.form.get('site_customizado_1_nome', '')
         config_site.site_customizado_1_url = request.form.get('site_customizado_1_url', '')
@@ -534,22 +535,16 @@ def admin_redes_sociais():
         config_site.site_customizado_2_url = request.form.get('site_customizado_2_url', '')
         config_site.site_customizado_3_nome = request.form.get('site_customizado_3_nome', '')
         config_site.site_customizado_3_url = request.form.get('site_customizado_3_url', '')
-
         config_site.atualizado_em = datetime.utcnow()
         db.session.commit()
         registrar_auditoria(current_user.id, 'ATUALIZAR_REDES', 'Redes sociais e sites atualizados')
         flash('✅ Redes sociais e sites atualizados com sucesso!', 'success')
         return redirect(url_for('admin_redes_sociais'))
-
-    return render_template('admin/redes_sociais.html', 
-                         config=config_site, 
-                         icones=icones)
-
+    return render_template('admin/redes_sociais.html', config=config_site, icones=icones)
 
 # =============================================
 # ROTAS DE CONTATOS
 # =============================================
-
 @app.route('/admin/contatos')
 @login_required
 def admin_contatos():
@@ -570,7 +565,6 @@ def admin_deletar_contato(id):
     contato = ContatoFormulario.query.get_or_404(id)
     db.session.delete(contato)
     db.session.commit()
-
     registrar_auditoria(current_user.id, 'DELETAR_CONTATO', f'Contato de {contato.nome} deletado')
     flash('✅ Contato removido!', 'success')
     return redirect(url_for('admin_contatos'))
@@ -578,17 +572,15 @@ def admin_deletar_contato(id):
 # =============================================
 # ROTAS DE AUDITORIA
 # =============================================
-
 @app.route('/admin/auditoria')
 @login_required
 def admin_auditoria():
     logs = LogAuditoria.query.order_by(LogAuditoria.criado_em.desc()).all()
     return render_template('admin/auditoria.html', logs=logs)
 
-# ==========================================
+# =============================================
 # TRATAMENTO DE ERROS
-# ==========================================
-
+# =============================================
 @app.errorhandler(404)
 def not_found_error(error):
     return render_template('404.html'), 404
@@ -597,12 +589,9 @@ def not_found_error(error):
 def internal_error(error):
     db.session.rollback()
     return render_template('500.html'), 500
+
 # Inicializar banco de dados
 init_db()
-
-
-
-
 
 if __name__ == '__main__':
     app.run(debug=True)

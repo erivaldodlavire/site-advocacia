@@ -181,3 +181,11 @@ class LogAuditoria(db.Model):
     acao = db.Column(db.String(200), nullable=False)
     descricao = db.Column(db.Text)
     criado_em = db.Column(db.DateTime, default=datetime.utcnow)
+
+# Sobre Nós
+titulo_sobre = db.Column(db.String(100), default='Sobre Nós')
+descricao_sobre_completa = db.Column(db.Text, default='')
+anos_experiencia = db.Column(db.String(50), default='20+')
+casos_resolvidos = db.Column(db.String(50), default='500+')
+taxa_sucesso = db.Column(db.String(50), default='97%')
+sobre_nos_ativo = db.Column(db.Boolean, default=True)
