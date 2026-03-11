@@ -10,6 +10,8 @@
 /* --- BLOCO DE TEMAS PARA ADMIN --- */
 body.tema-advogado { --primary: #001f3f; --accent: #e5c05b; }
 body.tema-juridico-dark { --primary: #0a0a0a; --accent: #c0c0c0; }
+/* Black Total: Fundo preto profundo com detalhes em branco gelo e um cinza suave */
+body.tema-black-total { --primary: #000000; --accent: #ffffff; --gray: #121212; --white: #0a0a0a; }
 body.tema-engenheiro { --primary: #1a1a1a; --accent: #f39c12; }
 body.tema-automacao { --primary: #002b36; --accent: #2aa198; }
 body.tema-ti { --primary: #0f172a; --accent: #38bdf8; }
@@ -23,7 +25,15 @@ body.tema-gamer { --primary: #0b0e11; --accent: #00ff41; }
 body.tema-cyberpunk { --primary: #03001c; --accent: #fee715; }
 body.tema-youtuber { --primary: #f00000; --accent: #ffffff; }
 body.tema-consultor { --primary: #2c3e50; --accent: #bdc3c7; }
+/* Ajuste de contraste para o tema Black Total */
+body.tema-black-total, 
+body.tema-black-total h2, 
+body.tema-black-total .card h3, 
+body.tema-black-total .info-item h3 { color: #ffffff !important; }
 
+body.tema-black-total .card, 
+body.tema-black-total .contato-form,
+body.tema-black-total .review-card { background: #1a1a1a; color: #ffffff; border-color: #333; }
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 body { font-family: 'Montserrat', sans-serif; background: var(--white); color: var(--primary); line-height: 1.6; overflow-x: hidden; transition: 0.5s; }
