@@ -6,6 +6,7 @@ const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 // 2. FUNÇÃO PRINCIPAL QUE APLICA OS DADOS NO HTML
 function aplicarDadosNoSite(data) {
     if (!data) return;
+    console.log("Aplicando dados no site...", data);
 
     // Aplicar Tema e Cabeçalho
     document.body.className = data.tema || 'tema-advogado';
@@ -114,7 +115,7 @@ async function enviarLead(event) {
     const { error } = await supabaseClient.from('site_leads').insert([novoLead]);
 
     if (!error) {
-        // 2. Prepara e abre o WhatsApp da Dra. Gleyciane
+        // 2. Prepara e abre o WhatsApp da Dra. Gleyciane automaticamente
         const foneGley = "5519971284797"; 
         const textoMsg = `*Novo Contato pelo Site*\n\n*Nome:* ${nome}\n*Assunto:* ${assunto}\n*Mensagem:* ${mensagem}`;
         const urlWhatsApp = `https://api.whatsapp.com/send?phone=${foneGley}&text=${encodeURIComponent(textoMsg)}`;
@@ -123,8 +124,8 @@ async function enviarLead(event) {
         window.open(urlWhatsApp, '_blank');
         event.target.reset();
     } else {
-        console.error("Erro Supabase:", error);
-        alert("Ocorreu um erro ao salvar sua mensagem. Por favor, tente pelo botão do WhatsApp no canto da tela.");
+        console.error("Erro Supabase:", error.message);
+        alert("Ocorreu um erro ao salvar sua mensagem. Por favor, utilize o botão flutuante do WhatsApp.");
     }
     
     btn.innerText = originalText;
@@ -133,7 +134,7 @@ async function enviarLead(event) {
 
 // 4. INICIALIZAÇÃO REFORÇADA E REGISTRO DE VISITA
 async function inicializarSite() {
-    console.log("Iniciando busca oficial de dados no Supabase...");
+    console.log("Buscando dados no Supabase...");
     
     // Tenta buscar da nuvem (ID 1)
     const { data, error } = await supabaseClient
@@ -143,22 +144,25 @@ async function inicializarSite() {
         .single();
 
     if (data) {
-        console.log("Dados carregados com sucesso!", data);
+        console.log("Dados da nuvem carregados!", data);
         aplicarDadosNoSite(data);
     } else {
-        console.error("Falha ao carregar nuvem ou ID não encontrado:", error);
-        // Fallback local
+        console.error("Falha ao carregar nuvem:", error);
+        // Fallback local se a nuvem falhar
         const localData = JSON.parse(localStorage.getItem('siteData'));
         if (localData) aplicarDadosNoSite(localData);
     }
 
-    // Registrar Analytics (Tabela site_visitas)
+    // Registrar Analytics (Tabela site_visitas) - Garantindo que a RLS permita inserção
     supabaseClient.from('site_visitas').insert([{ 
         pagina: window.location.pathname, 
         origem: document.referrer || "Direto",
         dispositivo: window.innerWidth < 768 ? "Celular" : "Desktop"
-    }]).then(() => console.log("Visita registrada."));
+    }]).then(({ error }) => {
+        if (error) console.error("Erro ao registrar visita:", error.message);
+        else console.log("Visita registrada com sucesso.");
+    });
 }
 
-// Inicia o processo quando a página estiver totalmente carregada
+// Evento de carregamento robusto
 window.addEventListener('load', inicializarSite);
