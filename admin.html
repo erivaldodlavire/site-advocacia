@@ -78,7 +78,6 @@
 <button class="btn-save-master" onclick="saveMaster()">SALVAR ALTERAÇÕES</button>
 
 <script>
-    // CONEXÃO SUPABASE
     const SUPABASE_URL = 'https://ueduzgoewlivkluiyqql.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVlZHV6Z29ld2xpdmtsdWl5cXFsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMxODAxMzAsImV4cCI6MjA4ODc1NjEzMH0.EM2s38El81fZYT-WVrxa7P_xX0e58EHQxdwreVgQecA';
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -139,42 +138,34 @@
         reader.readAsDataURL(file);
     }
 
+    // FUNÇÃO CORRIGIDA COM UPSERT PARA GARANTIR O ID 1
     async function saveMaster() {
         const btn = document.querySelector('.btn-save-master');
         const originalText = btn.innerText;
         btn.innerText = "☁️ Sincronizando...";
         btn.disabled = true;
 
-        // Capturar valores atuais dos campos de texto
-        db.nome = document.getElementById('in-nome').value;
-        db.oab = document.getElementById('in-oab').value;
-        db.slogan = document.getElementById('in-slogan').value;
-        db.sobre = document.getElementById('in-sobre').value;
-        db.tel = document.getElementById('in-tel').value;
-        db.email = document.getElementById('in-email').value;
-        db.tema = document.getElementById('in-tema').value;
+        const payload = {
+            id: 1, 
+            nome: document.getElementById('in-nome').value,
+            oab: document.getElementById('in-oab').value,
+            slogan: document.getElementById('in-slogan').value,
+            sobre: document.getElementById('in-sobre').value,
+            tel: document.getElementById('in-tel').value,
+            email: document.getElementById('in-email').value,
+            tema: document.getElementById('in-tema').value,
+            areas: db.areas,
+            pubs: db.pubs,
+            fotos: db.fotos,
+            redes: db.redes
+        };
 
         try {
             const { error } = await supabaseClient
                 .from('site_config')
-                .update({
-                    nome: db.nome,
-                    oab: db.oab,
-                    slogan: db.slogan,
-                    sobre: db.sobre,
-                    tel: db.tel,
-                    email: db.email,
-                    tema: db.tema,
-                    areas: db.areas,
-                    pubs: db.pubs,
-                    fotos: db.fotos,
-                    redes: db.redes
-                })
-                .eq('id', 1);
+                .upsert(payload);
 
             if (error) throw error;
-
-           // localStorage.setItem('siteData', JSON.stringify(db)); <-- LINHA COMENTADA AQUI
             alert("🚀 SUCESSO! Site atualizado na nuvem.");
             window.location.href = 'index.html';
         } catch (err) {
@@ -189,16 +180,17 @@
     window.onload = async () => {
         try {
             const { data, error } = await supabaseClient.from('site_config').select('*').eq('id', 1).single();
-            if (data) db = data;
-        } catch (e) { console.log("Usando dados locais temporariamente"); }
-
-        document.getElementById('in-nome').value = db.nome || "";
-        document.getElementById('in-oab').value = db.oab || "";
-        document.getElementById('in-slogan').value = db.slogan || "";
-        document.getElementById('in-sobre').value = db.sobre || "";
-        document.getElementById('in-tel').value = db.tel || "";
-        document.getElementById('in-email').value = db.email || "";
-        document.getElementById('in-tema').value = db.tema || "tema-advogado";
+            if (data) {
+                db = data;
+                document.getElementById('in-nome').value = db.nome || "";
+                document.getElementById('in-oab').value = db.oab || "";
+                document.getElementById('in-slogan').value = db.slogan || "";
+                document.getElementById('in-sobre').value = db.sobre || "";
+                document.getElementById('in-tel').value = db.tel || "";
+                document.getElementById('in-email').value = db.email || "";
+                document.getElementById('in-tema').value = db.tema || "tema-advogado";
+            }
+        } catch (e) { console.log("Erro ao carregar dados iniciais"); }
         renderAll();
     };
 </script>
