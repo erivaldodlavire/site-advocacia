@@ -13,14 +13,22 @@
         header { background: var(--primary); color: white; padding: 20px; text-align: center; border-radius: 10px; margin-bottom: 20px; position: relative;}
         .voltar { position: absolute; left: 20px; top: 30px; color: white; text-decoration: none; font-size: 0.9rem; }
         
-        .filtros { display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; }
-        .filtro-btn { padding: 8px 15px; border-radius: 20px; border: none; cursor: pointer; font-weight: bold; background: white; transition: 0.3s; }
-        .filtro-btn.active { background: var(--accent); color: var(--primary); }
+        .filtros { display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+        .filtro-btn { 
+            padding: 8px 15px; border-radius: 20px; border: 1px solid #ddd; cursor: pointer; 
+            font-weight: bold; background: white; transition: 0.3s; display: flex; align-items: center; gap: 8px;
+        }
+        .filtro-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+        
+        /* Mini contador dentro do botão */
+        .btn-count { 
+            background: #eee; color: #666; padding: 2px 8px; border-radius: 10px; font-size: 0.75rem; 
+        }
+        .active .btn-count { background: var(--accent); color: var(--primary); }
 
         .lead-card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin-bottom: 15px; transition: 0.3s; }
         .status-badge { padding: 5px 10px; border-radius: 5px; font-size: 0.7rem; font-weight: bold; text-transform: uppercase; color: white; }
         
-        /* Cores Dinâmicas */
         .status-novo { border-left: 8px solid var(--pendente); }
         .bg-novo { background: var(--pendente); }
         .status-andamento { border-left: 8px solid var(--andamento); }
@@ -33,7 +41,7 @@
         
         .controles { margin-top: 15px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; border-top: 1px solid #eee; padding-top: 15px; }
         .btn-zap { background: #25D366; color: white; border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer; text-decoration: none; font-size: 0.8rem; font-weight: bold; }
-        .select-status { padding: 5px; border-radius: 5px; font-size: 0.8rem; border: 1px solid #ccc; }
+        .select-status { padding: 5px; border-radius: 5px; font-size: 0.8rem; border: 1px solid #ccc; background: white; }
     </style>
 </head>
 <body>
@@ -45,10 +53,10 @@
 </header>
 
 <div class="filtros">
-    <button class="filtro-btn active" onclick="filtrar('todos')">Todos</button>
-    <button class="filtro-btn" onclick="filtrar('Novo')">Novos</button>
-    <button class="filtro-btn" onclick="filtrar('Em Atendimento')">Em Atendimento</button>
-    <button class="filtro-btn" onclick="filtrar('Concluído')">Concluídos</button>
+    <button class="filtro-btn active" onclick="filtrar('todos', this)">Todos <span class="btn-count" id="c-todos">0</span></button>
+    <button class="filtro-btn" onclick="filtrar('Novo', this)">Novos <span class="btn-count" id="c-novos">0</span></button>
+    <button class="filtro-btn" onclick="filtrar('Em Atendimento', this)">Em Atendimento <span class="btn-count" id="c-andamento">0</span></button>
+    <button class="filtro-btn" onclick="filtrar('Concluído', this)">Concluídos <span class="btn-count" id="c-concluidos">0</span></button>
 </div>
 
 <div id="leads-container"></div>
@@ -59,6 +67,7 @@
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     let todosLeads = [];
+    let filtroAtual = 'todos';
 
     async function carregarLeads() {
         const { data, error } = await supabaseClient
@@ -68,21 +77,43 @@
 
         if (error) return alert("Erro ao carregar");
         todosLeads = data;
-        renderizar(todosLeads);
-        atualizarContador();
+        
+        atualizarInterface();
+    }
+
+    function atualizarInterface() {
+        // Atualiza os números nos botões
+        document.getElementById('c-todos').innerText = todosLeads.length;
+        document.getElementById('c-novos').innerText = todosLeads.filter(l => (l.status === 'Novo' || !l.status)).length;
+        document.getElementById('c-andamento').innerText = todosLeads.filter(l => l.status === 'Em Atendimento').length;
+        document.getElementById('c-concluidos').innerText = todosLeads.filter(l => l.status === 'Concluído').length;
+
+        // Filtra a lista baseada na escolha atual
+        const listaParaExibir = filtroAtual === 'todos' ? todosLeads : todosLeads.filter(l => l.status === filtroAtual);
+        renderizar(listaParaExibir);
+        
+        // Atualiza o texto do resumo no topo
+        const novos = todosLeads.filter(l => l.status === 'Novo' || !l.status).length;
+        document.getElementById('contador').innerText = `${todosLeads.length} contatos no total | ${novos} pendentes de resposta`;
     }
 
     function renderizar(lista) {
         const container = document.getElementById('leads-container');
+        if (lista.length === 0) {
+            container.innerHTML = `<p style="text-align:center; margin-top:50px; color:#666;">Nenhum cliente encontrado neste filtro.</p>`;
+            return;
+        }
+
         container.innerHTML = lista.map(lead => {
-            const statusClass = lead.status === 'Concluído' ? 'status-concluido' : (lead.status === 'Em Atendimento' ? 'status-andamento' : 'status-novo');
-            const badgeClass = lead.status === 'Concluído' ? 'bg-concluido' : (lead.status === 'Em Atendimento' ? 'bg-andamento' : 'bg-novo');
+            const statusLabel = lead.status || 'Novo';
+            const statusClass = statusLabel === 'Concluído' ? 'status-concluido' : (statusLabel === 'Em Atendimento' ? 'status-andamento' : 'status-novo');
+            const badgeClass = statusLabel === 'Concluído' ? 'bg-concluido' : (statusLabel === 'Em Atendimento' ? 'bg-andamento' : 'bg-novo');
             
             return `
                 <div class="lead-card ${statusClass}">
                     <div class="lead-header">
                         <div>
-                            <span class="status-badge ${badgeClass}">${lead.status || 'Novo'}</span>
+                            <span class="status-badge ${badgeClass}">${statusLabel}</span>
                             <div style="font-weight:bold; font-size:1.2rem; margin-top:5px; color:#001f3f;">${lead.nome}</div>
                         </div>
                         <span style="font-size:0.8rem; color:#666;">${new Date(lead.data_hora).toLocaleString('pt-BR')}</span>
@@ -90,6 +121,7 @@
                     <div class="lead-info">
                         <p><strong>Assunto:</strong> ${lead.assunto}</p>
                         <p><strong>Mensagem:</strong> ${lead.mensagem}</p>
+                        <p><strong>WhatsApp:</strong> ${lead.whatsapp}</p>
                         <p><strong>E-mail:</strong> ${lead.email}</p>
                     </div>
                     <div class="controles">
@@ -98,9 +130,9 @@
                         </a>
                         <label style="font-size:0.7rem; font-weight:bold;">MUDAR STATUS:</label>
                         <select class="select-status" onchange="alterarStatus(${lead.id}, this.value)">
-                            <option value="Novo" ${lead.status === 'Novo' ? 'selected' : ''}>Pendente</option>
-                            <option value="Em Atendimento" ${lead.status === 'Em Atendimento' ? 'selected' : ''}>Em Atendimento</option>
-                            <option value="Concluído" ${lead.status === 'Concluído' ? 'selected' : ''}>Concluído / Arquivar</option>
+                            <option value="Novo" ${statusLabel === 'Novo' ? 'selected' : ''}>Pendente (Novo)</option>
+                            <option value="Em Atendimento" ${statusLabel === 'Em Atendimento' ? 'selected' : ''}>Em Atendimento</option>
+                            <option value="Concluído" ${statusLabel === 'Concluído' ? 'selected' : ''}>Concluído / Arquivar</option>
                         </select>
                     </div>
                 </div>
@@ -117,22 +149,11 @@
         if (!error) carregarLeads();
     }
 
-    function filtrar(status) {
-        // Estilo dos botões
-        document.querySelectorAll('.filtro-btn').forEach(btn => btn.classList.remove('active'));
-        event.target.classList.add('active');
-
-        if (status === 'todos') {
-            renderizar(todosLeads);
-        } else {
-            const filtrados = todosLeads.filter(l => l.status === status);
-            renderizar(filtrados);
-        }
-    }
-
-    function atualizarContador() {
-        const novos = todosLeads.filter(l => l.status === 'Novo' || !l.status).length;
-        document.getElementById('contador').innerText = `${todosLeads.length} contatos no total | ${novos} pendentes de resposta`;
+    function filtrar(status, btn) {
+        filtroAtual = status;
+        document.querySelectorAll('.filtro-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        atualizarInterface();
     }
 
     window.onload = carregarLeads;
