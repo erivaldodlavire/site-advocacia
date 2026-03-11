@@ -17,6 +17,7 @@
         .filtro-btn { 
             padding: 8px 15px; border-radius: 20px; border: 1px solid #ddd; cursor: pointer; 
             font-weight: bold; background: white; transition: 0.3s; display: flex; align-items: center; gap: 8px;
+            position: relative; /* Necessário para a bolinha de alerta */
         }
         .filtro-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
         
@@ -25,6 +26,20 @@
             background: #eee; color: #666; padding: 2px 8px; border-radius: 10px; font-size: 0.75rem; 
         }
         .active .btn-count { background: var(--accent); color: var(--primary); }
+
+        /* Bolinha de Alerta (Sinalizador de Novos) */
+        .dot-alerta {
+            position: absolute;
+            top: -5px;
+            right: -2px;
+            width: 12px;
+            height: 12px;
+            background-color: var(--pendente);
+            border-radius: 50%;
+            border: 2px solid white;
+            display: none; /* Inicia escondida */
+            box-shadow: 0 0 5px rgba(255, 77, 77, 0.5);
+        }
 
         .lead-card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin-bottom: 15px; transition: 0.3s; }
         .status-badge { padding: 5px 10px; border-radius: 5px; font-size: 0.7rem; font-weight: bold; text-transform: uppercase; color: white; }
@@ -53,10 +68,19 @@
 </header>
 
 <div class="filtros">
-    <button class="filtro-btn active" onclick="filtrar('todos', this)">Todos <span class="btn-count" id="c-todos">0</span></button>
-    <button class="filtro-btn" onclick="filtrar('Novo', this)">Novos <span class="btn-count" id="c-novos">0</span></button>
-    <button class="filtro-btn" onclick="filtrar('Em Atendimento', this)">Em Atendimento <span class="btn-count" id="c-andamento">0</span></button>
-    <button class="filtro-btn" onclick="filtrar('Concluído', this)">Concluídos <span class="btn-count" id="c-concluidos">0</span></button>
+    <button class="filtro-btn active" onclick="filtrar('todos', this)">
+        Todos <span class="btn-count" id="c-todos">0</span>
+    </button>
+    <button class="filtro-btn" onclick="filtrar('Novo', this)">
+        Novos <span class="btn-count" id="c-novos">0</span>
+        <span id="alerta-novos" class="dot-alerta"></span>
+    </button>
+    <button class="filtro-btn" onclick="filtrar('Em Atendimento', this)">
+        Atendimento <span class="btn-count" id="c-andamento">0</span>
+    </button>
+    <button class="filtro-btn" onclick="filtrar('Concluído', this)">
+        Concluídos <span class="btn-count" id="c-concluidos">0</span>
+    </button>
 </div>
 
 <div id="leads-container"></div>
@@ -82,19 +106,28 @@
     }
 
     function atualizarInterface() {
+        // Cálculo das somas
+        const total = todosLeads.length;
+        const novos = todosLeads.filter(l => (l.status === 'Novo' || !l.status)).length;
+        const andamento = todosLeads.filter(l => l.status === 'Em Atendimento').length;
+        const concluidos = todosLeads.filter(l => l.status === 'Concluído').length;
+
         // Atualiza os números nos botões
-        document.getElementById('c-todos').innerText = todosLeads.length;
-        document.getElementById('c-novos').innerText = todosLeads.filter(l => (l.status === 'Novo' || !l.status)).length;
-        document.getElementById('c-andamento').innerText = todosLeads.filter(l => l.status === 'Em Atendimento').length;
-        document.getElementById('c-concluidos').innerText = todosLeads.filter(l => l.status === 'Concluído').length;
+        document.getElementById('c-todos').innerText = total;
+        document.getElementById('c-novos').innerText = novos;
+        document.getElementById('c-andamento').innerText = andamento;
+        document.getElementById('c-concluidos').innerText = concluidos;
+
+        // Regra da bolinha vermelha (Sinalizador)
+        const bolinha = document.getElementById('alerta-novos');
+        bolinha.style.display = (novos > 0) ? 'block' : 'none';
 
         // Filtra a lista baseada na escolha atual
         const listaParaExibir = filtroAtual === 'todos' ? todosLeads : todosLeads.filter(l => l.status === filtroAtual);
         renderizar(listaParaExibir);
         
         // Atualiza o texto do resumo no topo
-        const novos = todosLeads.filter(l => l.status === 'Novo' || !l.status).length;
-        document.getElementById('contador').innerText = `${todosLeads.length} contatos no total | ${novos} pendentes de resposta`;
+        document.getElementById('contador').innerText = `${total} contatos no total | ${novos} pendentes de resposta`;
     }
 
     function renderizar(lista) {
