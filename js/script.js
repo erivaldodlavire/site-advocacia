@@ -46,7 +46,7 @@ function aplicarDadosNoSite(data) {
         }
     }
 
-    // Lógica de Ícones das Redes Sociais
+    // Lógica de Ícones das Redes Sociais (Atualizada para detectar TikTok corretamente)
     const getIcon = (u) => {
         const url = u.toLowerCase();
         if(url.includes('instagram')) return 'fab fa-instagram';
@@ -80,21 +80,21 @@ function aplicarDadosNoSite(data) {
                 const link = p.l.toLowerCase();
 
                 if (link.includes('instagram.com')) {
-                    // Card Personalizado Instagram
+                    // Card Personalizado Instagram - Proporção 16:9
                     thumbContent = `
-                        <div class="insta-placeholder" style="background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%); height: 180px; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; border-radius: 8px;">
-                            <i class="fab fa-instagram" style="font-size: 2.5rem; margin-bottom: 10px;"></i>
-                            <span style="font-weight: bold;">Ver no Instagram</span>
+                        <div class="insta-placeholder" style="background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%); aspect-ratio: 16/9; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; border-radius: 8px;">
+                            <i class="fab fa-instagram" style="font-size: 2.5rem; margin-bottom: 5px;"></i>
+                            <span style="font-weight: bold; font-size: 0.9rem;">Ver no Instagram</span>
                         </div>`;
                 } else if (link.includes('tiktok.com')) {
-                    // Card Personalizado TikTok
+                    // Card Personalizado TikTok - Proporção 16:9
                     thumbContent = `
-                        <div class="tiktok-placeholder" style="background: #000; height: 180px; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; border-radius: 8px; border: 1px solid #fe2c55;">
-                            <i class="fab fa-tiktok" style="font-size: 2.5rem; margin-bottom: 10px; color: #25f4ee; text-shadow: 2px 0 #fe2c55;"></i>
-                            <span style="font-weight: bold;">Ver no TikTok</span>
+                        <div class="tiktok-placeholder" style="background: #000; aspect-ratio: 16/9; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; border-radius: 8px; border: 1px solid #fe2c55;">
+                            <i class="fab fa-tiktok" style="font-size: 2.5rem; margin-bottom: 5px; color: #25f4ee; text-shadow: 2px 0 #fe2c55;"></i>
+                            <span style="font-weight: bold; font-size: 0.9rem;">Ver no TikTok</span>
                         </div>`;
                 } else if (link.includes('youtube.com') || link.includes('youtu.be')) {
-                    // Thumbnail YouTube
+                    // Thumbnail YouTube - Proporção 16:9 com ajuste de cobertura
                     let videoId = "";
                     if (link.includes('shorts/')) {
                         videoId = p.l.split('shorts/')[1].split(/[?#]/)[0];
@@ -104,23 +104,23 @@ function aplicarDadosNoSite(data) {
                         videoId = p.l.split('youtu.be/')[1].split(/[?#]/)[0];
                     }
                     thumbContent = `
-                        <div style="position: relative;">
-                            <img src="https://img.youtube.com/vi/${videoId}/hqdefault.jpg" style="width: 100%; border-radius: 8px; display: block;">
+                        <div style="position: relative; aspect-ratio: 16/9; overflow: hidden; border-radius: 8px; background: #000;">
+                            <img src="https://img.youtube.com/vi/${videoId}/hqdefault.jpg" style="width: 100%; height: 100%; object-fit: cover; display: block;">
                             <div class="play-overlay"><i class="fab fa-youtube"></i></div>
                         </div>`;
                 } else {
-                    // Link Genérico
+                    // Link Genérico - Proporção 16:9
                     thumbContent = `
-                        <div style="background: #333; height: 180px; display: flex; align-items: center; justify-content: center; color: white; border-radius: 8px;">
+                        <div style="background: #333; aspect-ratio: 16/9; display: flex; align-items: center; justify-content: center; color: white; border-radius: 8px;">
                             <i class="fas fa-link" style="font-size: 2rem;"></i>
                         </div>`;
                 }
 
                 return `
                     <div class="pub-container">
-                        <p class="pub-desc">${p.d}</p>
+                        <p class="pub-desc" style="min-height: 3em; margin-bottom: 10px;">${p.d}</p>
                         <div class="pub-item">
-                            <a href="${p.l}" target="_blank">${thumbContent}</a>
+                            <a href="${p.l}" target="_blank" style="text-decoration: none;">${thumbContent}</a>
                         </div>
                     </div>`;
             }).join('');
@@ -150,7 +150,7 @@ async function enviarLead(event) {
 
     if (!error) {
         // 2. Prepara e abre o WhatsApp da Dra. Gleyciane automaticamente
-        const foneGley = "5519971284797"; 
+        const foneGley = "5519971284797";
         const textoMsg = `*Novo Contato pelo Site*\n\n*Nome:* ${nome}\n*Assunto:* ${assunto}\n*Mensagem:* ${mensagem}`;
         const urlWhatsApp = `https://api.whatsapp.com/send?phone=${foneGley}&text=${encodeURIComponent(textoMsg)}`;
 
