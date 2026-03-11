@@ -64,7 +64,7 @@
     <div id="area-list"></div>
 
     <h3>3. Redes Sociais e Ícones</h3>
-    <div id="social-grid" class="section-box"></div>
+    <div id="social-grid" class="section-box" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;"></div>
 
     <h3>4. Gerenciamento de Imagens</h3>
     <div class="section-box">
@@ -91,11 +91,11 @@
         <label>Tema Profissional</label>
         <select id="in-tema">
             <optgroup label="Jurídico & Negócios">
-    <option value="tema-advogado">Advocacia (Ouro Marinho)</option>
-    <option value="tema-juridico-dark">Advocacia Dark (Luxo)</option>
-    <option value="tema-black-total">Black Total (Ultra Dark)</option> 
-    <option value="tema-contador">Contabilidade</option>
-    <option value="tema-consultor">Consultoria Geral</option>
+                <option value="tema-advogado">Advocacia (Ouro Marinho)</option>
+                <option value="tema-juridico-dark">Advocacia Dark (Luxo)</option>
+                <option value="tema-black-total">Black Total (Ultra Dark)</option> 
+                <option value="tema-contador">Contabilidade</option>
+                <option value="tema-consultor">Consultoria Geral</option>
             </optgroup>
             <optgroup label="Saúde & Bem-estar">
                 <option value="tema-medico">Medicina / Saúde</option>
@@ -135,7 +135,7 @@
 
     let db = {
         areas: defaultAreas,
-        redes: Array(5).fill(""),
+        redes: Array(10).fill(""), // ATUALIZADO PARA 10
         pubs: Array(6).fill({l:"", d:""}),
         fotos: {f1:"", f2:"", f3:"", logo:"", fundo:"", perfil:""},
         tema: "tema-advogado"
@@ -162,8 +162,12 @@
             </div>
         `).join('');
         
+        // RENDERIZANDO OS 10 LINKS SOCIAIS
         document.getElementById('social-grid').innerHTML = db.redes.map((r, i) => `
-            <label>Link Social ${i+1}</label><input type="text" value="${r || ''}" oninput="db.redes[${i}]=this.value" placeholder="https://...">
+            <div style="margin-bottom:10px;">
+                <label>Link Social ${i+1}</label>
+                <input type="text" value="${r || ''}" oninput="db.redes[${i}]=this.value" placeholder="https://...">
+            </div>
         `).join('');
 
         document.getElementById('pub-grid').innerHTML = db.pubs.map((p, i) => `
@@ -173,12 +177,10 @@
             </div>
         `).join('');
         
-        // Render das Fotos do Espaço
         for(let i=1; i<=3; i++) {
             const preview = document.getElementById('prev-'+i);
             if(db.fotos && db.fotos['f'+i]) preview.src = db.fotos['f'+i];
         }
-        // Render das Fotos de Destaque
         if(db.fotos.logo) document.getElementById('prev-logo').src = db.fotos.logo;
         if(db.fotos.fundo) document.getElementById('prev-fundo').src = db.fotos.fundo;
         if(db.fotos.perfil) document.getElementById('prev-perfil').src = db.fotos.perfil;
@@ -214,7 +216,7 @@
             areas: db.areas,
             pubs: db.pubs,
             fotos: db.fotos,
-            redes: db.redes
+            redes: db.redes // ENVIA OS 10 LINKS
         };
         try {
             const { error } = await supabaseClient.from('site_config').upsert(payload);
@@ -235,6 +237,12 @@
             const { data, error } = await supabaseClient.from('site_config').select('*').eq('id', 1).single();
             if (data) {
                 db = data;
+                // GARANTE QUE O ARRAY DE REDES TENHA 10 ESPAÇOS SE VIER VAZIO
+                if(!db.redes || db.redes.length < 10) {
+                    let novasRedes = Array(10).fill("");
+                    if(db.redes) db.redes.forEach((r, i) => novasRedes[i] = r);
+                    db.redes = novasRedes;
+                }
                 if (!db.fotos) db.fotos = {f1:"", f2:"", f3:"", logo:"", fundo:"", perfil:""};
                 document.getElementById('in-nome').value = db.nome || "";
                 document.getElementById('in-oab').value = db.oab || "";
