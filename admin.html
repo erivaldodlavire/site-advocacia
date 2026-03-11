@@ -28,6 +28,13 @@
 
 <header class="admin-nav">
     <h1>Painel de Controle Gleysite v9.0</h1>
+    
+    <div style="text-align: center; margin: 20px 0;">
+        <a href="admin-leads.html" style="background: var(--accent); color: var(--primary); padding: 12px 25px; border-radius: 8px; text-decoration: none; font-weight: bold; border: 2px solid var(--primary); display: inline-block;">
+            📩 VER MENSAGENS DOS CLIENTES
+        </a>
+    </div>
+
     <p>Gestão de Conteúdo e Fotos do Escritório (Sincronizado com Nuvem)</p>
 </header>
 
@@ -78,6 +85,7 @@
 <button class="btn-save-master" onclick="saveMaster()">SALVAR ALTERAÇÕES</button>
 
 <script>
+    // CONEXÃO SUPABASE
     const SUPABASE_URL = 'https://ueduzgoewlivkluiyqql.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVlZHV6Z29ld2xpdmtsdWl5cXFsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMxODAxMzAsImV4cCI6MjA4ODc1NjEzMH0.EM2s38El81fZYT-WVrxa7P_xX0e58EHQxdwreVgQecA';
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -90,7 +98,7 @@
         {t:'Sucessório', d:'Inventários e partilhas.', i:'fas fa-file-signature'}
     ];
 
-    let db = JSON.parse(localStorage.getItem('siteData')) || {
+    let db = {
         areas: defaultAreas,
         redes: Array(5).fill(""),
         pubs: Array(6).fill({l:"", d:""}),
@@ -138,7 +146,7 @@
         reader.readAsDataURL(file);
     }
 
-    // FUNÇÃO CORRIGIDA COM UPSERT PARA GARANTIR O ID 1
+    // FUNÇÃO CORRIGIDA COM UPSERT PARA GARANTIR SINCRONIA
     async function saveMaster() {
         const btn = document.querySelector('.btn-save-master');
         const originalText = btn.innerText;

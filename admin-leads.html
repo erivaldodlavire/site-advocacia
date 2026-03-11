@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestão de Leads | Dra. Gleyciane</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root { --primary: #001f3f; --accent: #e5c05b; }
+        body { font-family: 'Montserrat', sans-serif; background: #f0f2f5; margin: 0; padding: 20px; }
+        header { background: var(--primary); color: white; padding: 20px; text-align: center; border-radius: 10px; margin-bottom: 20px; }
+        .lead-card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin-bottom: 15px; border-left: 5px solid var(--accent); }
+        .lead-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 10px; }
+        .lead-name { font-weight: bold; font-size: 1.1rem; color: var(--primary); }
+        .lead-date { font-size: 0.8rem; color: #666; }
+        .lead-body p { margin: 5px 0; font-size: 0.9rem; }
+        .btn-zap { background: #25D366; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; text-decoration: none; display: inline-block; margin-top: 10px; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>📋 Mensagens Recebidas</h1>
+    <p>Lista de potenciais clientes interessados</p>
+</header>
+
+<div id="leads-container">
+    <p style="text-align:center;">Carregando mensagens...</p>
+</div>
+
+<script>
+    const SUPABASE_URL = 'https://ueduzgoewlivkluiyqql.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVlZHV6Z29ld2xpdmtsdWl5cXFsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMxODAxMzAsImV4cCI6MjA4ODc1NjEzMH0.EM2s38El81fZYT-WVrxa7P_xX0e58EHQxdwreVgQecA';
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    async function carregarLeads() {
+        const { data, error } = await supabaseClient
+            .from('site_leads')
+            .select('*')
+            .order('data_hora', { ascending: false });
+
+        if (error) {
+            document.getElementById('leads-container').innerHTML = "<p>Erro ao carregar dados.</p>";
+            return;
+        }
+
+        if (data.length === 0) {
+            document.getElementById('leads-container').innerHTML = "<p style='text-align:center;'>Nenhuma mensagem recebida ainda.</p>";
+            return;
+        }
+
+        document.getElementById('leads-container').innerHTML = data.map(lead => `
+            <div class="lead-card">
+                <div class="lead-header">
+                    <span class="lead-name">${lead.nome}</span>
+                    <span class="lead-date">${new Date(lead.data_hora).toLocaleString('pt-BR')}</span>
+                </div>
+                <div class="lead-body">
+                    <p><strong>E-mail:</strong> ${lead.email}</p>
+                    <p><strong>WhatsApp:</strong> ${lead.whatsapp}</p>
+                    <p><strong>Assunto:</strong> ${lead.assunto}</p>
+                    <p><strong>Mensagem:</strong> ${lead.mensagem}</p>
+                    <a href="https://api.whatsapp.com/send?phone=55${lead.whatsapp.replace(/\D/g,'')}" target="_blank" class="btn-zap">
+                        <i class="fab fa-whatsapp"></i> Responder no WhatsApp
+                    </a>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    window.onload = carregarLeads;
+</script>
+</body>
+</html>
