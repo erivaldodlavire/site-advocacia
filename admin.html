@@ -85,7 +85,6 @@
 <button class="btn-save-master" onclick="saveMaster()">SALVAR ALTERAÇÕES</button>
 
 <script>
-    // CONEXÃO SUPABASE
     const SUPABASE_URL = 'https://ueduzgoewlivkluiyqql.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVlZHV6Z29ld2xpdmtsdWl5cXFsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMxODAxMzAsImV4cCI6MjA4ODc1NjEzMH0.EM2s38El81fZYT-WVrxa7P_xX0e58EHQxdwreVgQecA';
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -146,7 +145,6 @@
         reader.readAsDataURL(file);
     }
 
-    // FUNÇÃO CORRIGIDA COM UPSERT PARA GARANTIR SINCRONIA
     async function saveMaster() {
         const btn = document.querySelector('.btn-save-master');
         const originalText = btn.innerText;
@@ -169,10 +167,7 @@
         };
 
         try {
-            const { error } = await supabaseClient
-                .from('site_config')
-                .upsert(payload);
-
+            const { error } = await supabaseClient.from('site_config').upsert(payload);
             if (error) throw error;
             alert("🚀 SUCESSO! Site atualizado na nuvem.");
             window.location.href = 'index.html';
@@ -198,7 +193,7 @@
                 document.getElementById('in-email').value = db.email || "";
                 document.getElementById('in-tema').value = db.tema || "tema-advogado";
             }
-        } catch (e) { console.log("Erro ao carregar dados iniciais"); }
+        } catch (e) { console.log("Dados iniciais carregados."); }
         renderAll();
     };
 </script>
