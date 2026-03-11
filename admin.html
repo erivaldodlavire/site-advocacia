@@ -23,7 +23,6 @@
         .upload-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-top: 10px; }
         .preview-img { width: 100%; height: 150px; object-fit: cover; border-radius: 10px; border: 2px solid #ddd; background: #eee; }
         
-        /* Estilo da bolinha de notificação */
         .badge-container { position: relative; display: inline-block; }
         .badge-notif {
             position: absolute; top: -10px; right: -10px; background: var(--danger); color: white;
@@ -36,7 +35,6 @@
 
 <header class="admin-nav">
     <h1>Painel de Controle Gleysite v9.0</h1>
-    
     <div style="text-align: center; margin: 20px 0;">
         <div class="badge-container">
             <a href="admin-leads.html" style="background: var(--accent); color: var(--primary); padding: 12px 25px; border-radius: 8px; text-decoration: none; font-weight: bold; border: 2px solid var(--primary); display: inline-block;">
@@ -45,7 +43,6 @@
             <span id="badge-count" class="badge-notif">0</span>
         </div>
     </div>
-
     <p>Gestão de Conteúdo e Fotos do Escritório (Sincronizado com Nuvem)</p>
 </header>
 
@@ -85,10 +82,29 @@
     <div class="section-box">
         <label>Tema Profissional</label>
         <select id="in-tema">
-            <option value="tema-advogado">Advocacia (Ouro Marinho)</option>
-            <option value="tema-gamer">Gamer (EriPlay)</option>
-            <option value="tema-cyberpunk">Cyberpunk</option>
-            <option value="tema-engenheiro">Engenharia</option>
+            <optgroup label="Jurídico & Negócios">
+                <option value="tema-advogado">Advocacia (Ouro Marinho)</option>
+                <option value="tema-juridico-dark">Advocacia Dark (Luxo)</option>
+                <option value="tema-contador">Contabilidade</option>
+                <option value="tema-consultor">Consultoria Geral</option>
+            </optgroup>
+            <optgroup label="Saúde & Bem-estar">
+                <option value="tema-medico">Medicina / Saúde</option>
+                <option value="tema-psicologo">Psicologia</option>
+                <option value="tema-nutri">Nutrição</option>
+                <option value="tema-estetica">Estética</option>
+            </optgroup>
+            <optgroup label="Tecnologia & Engenharia">
+                <option value="tema-engenheiro">Engenharia Geral</option>
+                <option value="tema-automacao">Automação Industrial</option>
+                <option value="tema-ti">Tecnologia / TI</option>
+                <option value="tema-arquiteto">Arquitetura</option>
+            </optgroup>
+            <optgroup label="Entretenimento">
+                <option value="tema-gamer">Gamer (EriPlay)</option>
+                <option value="tema-cyberpunk">Cyberpunk Neon</option>
+                <option value="tema-youtuber">YouTuber / Criador</option>
+            </optgroup>
         </select>
     </div>
 </div>
@@ -96,7 +112,6 @@
 <button class="btn-save-master" onclick="saveMaster()">SALVAR ALTERAÇÕES</button>
 
 <script>
-    // CONEXÃO SUPABASE
     const SUPABASE_URL = 'https://ueduzgoewlivkluiyqql.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVlZHV6Z29ld2xpdmtsdWl5cXFsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMxODAxMzAsImV4cCI6MjA4ODc1NjEzMH0.EM2s38El81fZYT-WVrxa7P_xX0e58EHQxdwreVgQecA';
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -117,14 +132,12 @@
         tema: "tema-advogado"
     };
 
-    // Função para contar leads novos
     async function atualizarNotificacao() {
         try {
             const { data, error } = await supabaseClient
                 .from('site_leads')
                 .select('id')
                 .eq('status', 'Novo');
-
             const badge = document.getElementById('badge-count');
             if (data && data.length > 0) {
                 badge.innerText = data.length;
@@ -144,18 +157,15 @@
                 <button onclick="db.areas.splice(${i},1); renderAll()" style="background:red; color:white; border:none; padding:10px; border-radius:5px; cursor:pointer">X</button>
             </div>
         `).join('');
-
         document.getElementById('social-grid').innerHTML = db.redes.map((r, i) => `
             <label>Link Social ${i+1}</label><input type="text" value="${r || ''}" oninput="db.redes[${i}]=this.value" placeholder="https://...">
         `).join('');
-
         document.getElementById('pub-grid').innerHTML = db.pubs.map((p, i) => `
             <div class="dynamic-item">
                 <input type="text" placeholder="Título" value="${p.d || ''}" oninput="db.pubs[${i}].d=this.value" style="flex:1">
                 <input type="text" placeholder="Link YouTube/Insta" value="${p.l || ''}" oninput="db.pubs[${i}].l=this.value" style="flex:2">
             </div>
         `).join('');
-        
         for(let i=1; i<=3; i++) {
             const preview = document.getElementById('prev-'+i);
             if(db.fotos && db.fotos['f'+i]) preview.src = db.fotos['f'+i];
@@ -180,7 +190,6 @@
         const originalText = btn.innerText;
         btn.innerText = "☁️ Sincronizando...";
         btn.disabled = true;
-
         const payload = {
             id: 1, 
             nome: document.getElementById('in-nome').value,
@@ -195,7 +204,6 @@
             fotos: db.fotos,
             redes: db.redes
         };
-
         try {
             const { error } = await supabaseClient.from('site_config').upsert(payload);
             if (error) throw error;
@@ -225,7 +233,7 @@
             }
         } catch (e) { console.log("Dados iniciais carregados."); }
         renderAll();
-        atualizarNotificacao(); // Ativa a bolinha vermelha
+        atualizarNotificacao();
     };
 </script>
 </body>
