@@ -93,7 +93,7 @@ function aplicarDadosNoSite(data) {
     }
 }
 
-// 3. FUNÇÃO PARA ENVIAR CONTATO
+// 3. FUNÇÃO PARA ENVIAR CONTATO (SALVA NO BANCO + ABRE WHATSAPP)
 async function enviarLead(event) {
     event.preventDefault();
     const btn = event.target.querySelector('button');
@@ -101,31 +101,41 @@ async function enviarLead(event) {
     btn.innerText = "Enviando...";
     btn.disabled = true;
 
-    const novoLead = {
-        nome: document.getElementById('nome').value,
-        email: document.getElementById('email').value,
-        whatsapp: document.getElementById('telefone').value,
-        assunto: document.getElementById('titulo').value,
-        mensagem: document.getElementById('mensagem').value
-    };
+    // Captura dos dados
+    const nome = document.getElementById('nome').value;
+    const email = document.getElementById('email').value;
+    const whatsapp = document.getElementById('telefone').value;
+    const assunto = document.getElementById('titulo').value;
+    const mensagem = document.getElementById('mensagem').value;
 
+    const novoLead = { nome, email, whatsapp, assunto, mensagem };
+
+    // 1. Salva no Supabase (Tabela site_leads)
     const { error } = await supabaseClient.from('site_leads').insert([novoLead]);
 
     if (!error) {
-        alert("Mensagem enviada com sucesso! Dra. Gleyciane entrará em contato.");
+        // 2. Prepara e abre o WhatsApp da Dra. Gleyciane
+        const foneGley = "5519971284797"; 
+        const textoMsg = `*Novo Contato pelo Site*\n\n*Nome:* ${nome}\n*Assunto:* ${assunto}\n*Mensagem:* ${mensagem}`;
+        const urlWhatsApp = `https://api.whatsapp.com/send?phone=${foneGley}&text=${encodeURIComponent(textoMsg)}`;
+
+        alert("Mensagem registrada com sucesso! Abrindo o WhatsApp para falar com a Dra...");
+        window.open(urlWhatsApp, '_blank');
         event.target.reset();
     } else {
-        alert("Erro ao enviar mensagem. Tente pelo WhatsApp.");
+        console.error("Erro Supabase:", error);
+        alert("Ocorreu um erro ao salvar sua mensagem. Por favor, tente pelo botão do WhatsApp no canto da tela.");
     }
+    
     btn.innerText = originalText;
     btn.disabled = false;
 }
 
-// 4. INICIALIZAÇÃO REFORÇADA (CORREÇÃO DE CACHE E DIAGNÓSTICO)
+// 4. INICIALIZAÇÃO REFORÇADA E REGISTRO DE VISITA
 async function inicializarSite() {
     console.log("Iniciando busca oficial de dados no Supabase...");
     
-    // Tenta buscar da nuvem (ID 1 garantido)
+    // Tenta buscar da nuvem (ID 1)
     const { data, error } = await supabaseClient
         .from('site_config')
         .select('*')
@@ -133,19 +143,16 @@ async function inicializarSite() {
         .single();
 
     if (data) {
-        console.log("Dados oficiais carregados com sucesso!", data);
+        console.log("Dados carregados com sucesso!", data);
         aplicarDadosNoSite(data);
     } else {
         console.error("Falha ao carregar nuvem ou ID não encontrado:", error);
-        // Tenta buscar localmente apenas como plano B
+        // Fallback local
         const localData = JSON.parse(localStorage.getItem('siteData'));
-        if (localData) {
-            console.log("Usando dados locais temporários.");
-            aplicarDadosNoSite(localData);
-        }
+        if (localData) aplicarDadosNoSite(localData);
     }
 
-    // Registrar Analytics (opcional)
+    // Registrar Analytics (Tabela site_visitas)
     supabaseClient.from('site_visitas').insert([{ 
         pagina: window.location.pathname, 
         origem: document.referrer || "Direto",
@@ -153,5 +160,5 @@ async function inicializarSite() {
     }]).then(() => console.log("Visita registrada."));
 }
 
-// Disparar inicialização quando a página carregar completamente
+// Inicia o processo quando a página estiver totalmente carregada
 window.addEventListener('load', inicializarSite);
