@@ -121,11 +121,11 @@ async function enviarLead(event) {
     btn.disabled = false;
 }
 
-// 4. INICIALIZAÇÃO REFORÇADA
+// 4. INICIALIZAÇÃO REFORÇADA (CORREÇÃO DE CACHE E DIAGNÓSTICO)
 async function inicializarSite() {
-    console.log("Iniciando busca de dados na nuvem...");
+    console.log("Iniciando busca oficial de dados no Supabase...");
     
-    // Tenta buscar da nuvem (Supabase)
+    // Tenta buscar da nuvem (ID 1 garantido)
     const { data, error } = await supabaseClient
         .from('site_config')
         .select('*')
@@ -133,15 +133,19 @@ async function inicializarSite() {
         .single();
 
     if (data) {
-        console.log("Dados carregados com sucesso!");
+        console.log("Dados oficiais carregados com sucesso!", data);
         aplicarDadosNoSite(data);
     } else {
-        console.warn("Falha ao carregar nuvem, tentando local...", error);
+        console.error("Falha ao carregar nuvem ou ID não encontrado:", error);
+        // Tenta buscar localmente apenas como plano B
         const localData = JSON.parse(localStorage.getItem('siteData'));
-        if (localData) aplicarDadosNoSite(localData);
+        if (localData) {
+            console.log("Usando dados locais temporários.");
+            aplicarDadosNoSite(localData);
+        }
     }
 
-    // Registrar Analytics
+    // Registrar Analytics (opcional)
     supabaseClient.from('site_visitas').insert([{ 
         pagina: window.location.pathname, 
         origem: document.referrer || "Direto",
@@ -149,5 +153,5 @@ async function inicializarSite() {
     }]).then(() => console.log("Visita registrada."));
 }
 
-// Executar ao carregar a janela
+// Disparar inicialização quando a página carregar completamente
 window.addEventListener('load', inicializarSite);
