@@ -7,6 +7,14 @@
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        /* Ajuste preventivo para que o Hero aceite imagem dinâmica via JS */
+        #hero {
+            background-size: cover;
+            background-position: center center;
+            background-repeat: no-repeat;
+        }
+    </style>
 </head>
 <body class="tema-advogado"> 
     <header class="main-header">
@@ -99,58 +107,7 @@
         <div class="container">
             <h2 id="edit-publicacoes-titulo">Minhas Publicações</h2>
             <div class="pub-grid" id="container-publicacoes">
-                <div class="pub-container">
-                    <p class="pub-desc" id="pub-desc-1">Análise sobre Direitos Civis</p>
-                    <div class="pub-item">
-                        <a href="https://www.youtube.com/watch?v=5FuYmOuuQOI" target="_blank">
-                            <img src="https://img.youtube.com/vi/5FuYmOuuQOI/hqdefault.jpg" alt="Youtube Video" id="pub-img-1">
-                            <div class="play-overlay"><i class="fab fa-youtube"></i></div>
-                        </a>
-                    </div>
                 </div>
-                <div class="pub-container">
-                    <p class="pub-desc" id="pub-desc-2">Planejamento Previdenciário</p>
-                    <div class="pub-item">
-                        <a href="https://www.youtube.com/watch?v=iq8cS63uKgQ" target="_blank">
-                            <img src="https://img.youtube.com/vi/iq8cS63uKgQ/hqdefault.jpg" alt="Youtube Video" id="pub-img-2">
-                            <div class="play-overlay"><i class="fab fa-youtube"></i></div>
-                        </a>
-                    </div>
-                </div>
-                <div class="pub-container">
-                    <p class="pub-desc" id="pub-desc-3">Casos de Defesa Criminal</p>
-                    <div class="pub-item">
-                        <a href="https://youtu.be/tiw9rG2ip1Q?si=V0x3BsyabCmyfpZD" target="_blank">
-                            <img src="https://img.youtube.com/vi/8YoJIm-uBRU/hqdefault.jpg" alt="Youtube Video" id="pub-img-3">
-                            <div class="play-overlay"><i class="fab fa-youtube"></i></div>
-                        </a>
-                    </div>
-                </div>
-                <div class="pub-container">
-                    <p class="pub-desc" id="pub-desc-4">Ética na Advocacia</p>
-                    <div class="pub-item">
-                        <a href="https://www.instagram.com/reel/DJ0JZ8du7hp/" target="_blank">
-                            <div class="insta-placeholder"><i class="fab fa-instagram"></i> Ver no Instagram</div>
-                        </a>
-                    </div>
-                </div>
-                <div class="pub-container">
-                    <p class="pub-desc" id="pub-desc-5">Prazos Processuais 2026</p>
-                    <div class="pub-item">
-                        <a href="https://www.instagram.com/reel/DOJHhPTDgfq/" target="_blank">
-                            <div class="insta-placeholder"><i class="fab fa-instagram"></i> Ver no Instagram</div>
-                        </a>
-                    </div>
-                </div>
-                <div class="pub-container">
-                    <p class="pub-desc" id="pub-desc-6">Direito de Família</p>
-                    <div class="pub-item">
-                        <a href="https://www.instagram.com/reel/DJ5JRFZO47h/" target="_blank">
-                            <div class="insta-placeholder"><i class="fab fa-instagram"></i> Ver no Instagram</div>
-                        </a>
-                    </div>
-                </div>
-            </div>
         </div>
     </section>
 
@@ -180,12 +137,7 @@
                 </div>
             </div>
             <div class="social-links-contato" id="edit-redes-sociais-icones">
-                <a href="https://api.whatsapp.com/send/?phone=5519971284797" target="_blank" class="icon-3d"><i class="fab fa-whatsapp"></i></a>
-                <a href="https://www.instagram.com/gleycianearaujo.adv/" target="_blank" class="icon-3d"><i class="fab fa-instagram"></i></a>
-                <a href="https://www.facebook.com/gleyciane.araujo.2025" target="_blank" class="icon-3d"><i class="fab fa-facebook"></i></a>
-                <a href="https://linkedin.com/in/gleyciane-araújo-1a3b0374" target="_blank" class="icon-3d"><i class="fab fa-linkedin"></i></a>
-                <a href="https://x.com/gleyaraujo?s=21" target="_blank" class="icon-3d"><i class="fab fa-x-twitter"></i></a>
-            </div>
+                </div>
         </div>
     </section>
 
@@ -216,12 +168,7 @@
                 <p id="footer-fone-texto">📞 (19) 99556-6991</p>
             </div>
             <div class="social-links" id="edit-social-links-footer">
-                <a href="https://api.whatsapp.com/send/?phone=5519971284797" target="_blank" class="icon-3d"><i class="fab fa-whatsapp"></i></a>
-                <a href="https://www.instagram.com/gleycianearaujo.adv/" target="_blank" class="icon-3d"><i class="fab fa-instagram"></i></a>
-                <a href="https://www.facebook.com/gleyciane.araujo.2025" target="_blank" class="icon-3d"><i class="fab fa-facebook"></i></a>
-                <a href="https://linkedin.com/in/gleyciane-araújo-1a3b0374" target="_blank" class="icon-3d"><i class="fab fa-linkedin"></i></a>
-                <a href="https://x.com/gleyaraujo?s=21" target="_blank" class="icon-3d"><i class="fab fa-x-twitter"></i></a>
-            </div>
+                </div>
             <div class="footer-credits">
                 <p id="edit-copyright">© 2026 Gleyciane Araujo | Advogada. Todos os direitos reservados.</p>
                 <p id="edit-criador">Desenvolvido com ❤️ por <a href="admin.html" id="edit-criador-link">Eri | Admin</a></p>
@@ -234,7 +181,6 @@
     </a>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
     <script src="js/script.js"></script>
 </body>
 </html>

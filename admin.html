@@ -66,12 +66,20 @@
     <h3>3. Redes Sociais e Ícones</h3>
     <div id="social-grid" class="section-box"></div>
 
-    <h3>4. Fotos do "Nosso Espaço"</h3>
+    <h3>4. Gerenciamento de Imagens</h3>
     <div class="section-box">
+        <label>Fotos de Perfil e Destaque</label>
         <div class="upload-grid">
-            <div><label>Foto 1</label><img id="prev-1" class="preview-img"><input type="file" onchange="encodeImg(1, this)" accept="image/*"></div>
-            <div><label>Foto 2</label><img id="prev-2" class="preview-img"><input type="file" onchange="encodeImg(2, this)" accept="image/*"></div>
-            <div><label>Foto 3</label><img id="prev-3" class="preview-img"><input type="file" onchange="encodeImg(3, this)" accept="image/*"></div>
+            <div><label>Logo (Superior 1)</label><img id="prev-logo" class="preview-img"><input type="file" onchange="encodeImg('logo', this)" accept="image/*"></div>
+            <div><label>Fundo Hero (Fundo 2)</label><img id="prev-fundo" class="preview-img"><input type="file" onchange="encodeImg('fundo', this)" accept="image/*"></div>
+            <div><label>Foto Perfil (Centro 3)</label><img id="prev-perfil" class="preview-img"><input type="file" onchange="encodeImg('perfil', this)" accept="image/*"></div>
+        </div>
+        
+        <label style="margin-top: 20px;">Fotos do "Nosso Espaço"</label>
+        <div class="upload-grid">
+            <div><label>Foto Espaço 1</label><img id="prev-1" class="preview-img"><input type="file" onchange="encodeImg(1, this)" accept="image/*"></div>
+            <div><label>Foto Espaço 2</label><img id="prev-2" class="preview-img"><input type="file" onchange="encodeImg(2, this)" accept="image/*"></div>
+            <div><label>Foto Espaço 3</label><img id="prev-3" class="preview-img"><input type="file" onchange="encodeImg(3, this)" accept="image/*"></div>
         </div>
     </div>
 
@@ -128,23 +136,18 @@
         areas: defaultAreas,
         redes: Array(5).fill(""),
         pubs: Array(6).fill({l:"", d:""}),
-        fotos: {f1:"", f2:"", f3:""},
+        fotos: {f1:"", f2:"", f3:"", logo:"", fundo:"", perfil:""},
         tema: "tema-advogado"
     };
 
     async function atualizarNotificacao() {
         try {
-            const { data, error } = await supabaseClient
-                .from('site_leads')
-                .select('id')
-                .eq('status', 'Novo');
+            const { data, error } = await supabaseClient.from('site_leads').select('id').eq('status', 'Novo');
             const badge = document.getElementById('badge-count');
             if (data && data.length > 0) {
                 badge.innerText = data.length;
                 badge.style.display = 'block';
-            } else {
-                badge.style.display = 'none';
-            }
+            } else { badge.style.display = 'none'; }
         } catch (e) { console.log("Erro ao atualizar badge"); }
     }
 
@@ -157,19 +160,27 @@
                 <button onclick="db.areas.splice(${i},1); renderAll()" style="background:red; color:white; border:none; padding:10px; border-radius:5px; cursor:pointer">X</button>
             </div>
         `).join('');
+        
         document.getElementById('social-grid').innerHTML = db.redes.map((r, i) => `
             <label>Link Social ${i+1}</label><input type="text" value="${r || ''}" oninput="db.redes[${i}]=this.value" placeholder="https://...">
         `).join('');
+
         document.getElementById('pub-grid').innerHTML = db.pubs.map((p, i) => `
             <div class="dynamic-item">
                 <input type="text" placeholder="Título" value="${p.d || ''}" oninput="db.pubs[${i}].d=this.value" style="flex:1">
                 <input type="text" placeholder="Link YouTube/Insta" value="${p.l || ''}" oninput="db.pubs[${i}].l=this.value" style="flex:2">
             </div>
         `).join('');
+        
+        // Render das Fotos do Espaço
         for(let i=1; i<=3; i++) {
             const preview = document.getElementById('prev-'+i);
             if(db.fotos && db.fotos['f'+i]) preview.src = db.fotos['f'+i];
         }
+        // Render das Fotos de Destaque
+        if(db.fotos.logo) document.getElementById('prev-logo').src = db.fotos.logo;
+        if(db.fotos.fundo) document.getElementById('prev-fundo').src = db.fotos.fundo;
+        if(db.fotos.perfil) document.getElementById('prev-perfil').src = db.fotos.perfil;
     }
 
     function addArea() { db.areas.push({t:"Nova Área", d:"Descrição aqui", i:"fas fa-star"}); renderAll(); }
@@ -179,7 +190,7 @@
         if (!file) return;
         const reader = new FileReader();
         reader.onloadend = () => {
-            db.fotos['f'+id] = reader.result;
+            db.fotos[id === 'logo' || id === 'fundo' || id === 'perfil' ? id : 'f'+id] = reader.result;
             document.getElementById('prev-'+id).src = reader.result;
         };
         reader.readAsDataURL(file);
@@ -223,6 +234,7 @@
             const { data, error } = await supabaseClient.from('site_config').select('*').eq('id', 1).single();
             if (data) {
                 db = data;
+                if (!db.fotos) db.fotos = {f1:"", f2:"", f3:"", logo:"", fundo:"", perfil:""};
                 document.getElementById('in-nome').value = db.nome || "";
                 document.getElementById('in-oab').value = db.oab || "";
                 document.getElementById('in-slogan').value = db.slogan || "";
@@ -231,7 +243,7 @@
                 document.getElementById('in-email').value = db.email || "";
                 document.getElementById('in-tema').value = db.tema || "tema-advogado";
             }
-        } catch (e) { console.log("Dados iniciais carregados."); }
+        } catch (e) { console.log("Dados carregados."); }
         renderAll();
         atualizarNotificacao();
     };

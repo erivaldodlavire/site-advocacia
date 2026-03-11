@@ -7,8 +7,12 @@
     --whatsapp-green: #25D366;
 }
 
-/* --- BLOCO DE TEMAS PARA ADMIN (REQUISITO 1) --- */
+/* --- BLOCO DE TEMAS PARA ADMIN --- */
+body.tema-advogado { --primary: #001f3f; --accent: #e5c05b; }
+body.tema-juridico-dark { --primary: #0a0a0a; --accent: #c0c0c0; }
 body.tema-engenheiro { --primary: #1a1a1a; --accent: #f39c12; }
+body.tema-automacao { --primary: #002b36; --accent: #2aa198; }
+body.tema-ti { --primary: #0f172a; --accent: #38bdf8; }
 body.tema-medico { --primary: #00796b; --accent: #4db6ac; }
 body.tema-psicologo { --primary: #6d597a; --accent: #e5989b; }
 body.tema-contador { --primary: #0d1b2a; --accent: #e0e1dd; }
@@ -18,6 +22,7 @@ body.tema-arquiteto { --primary: #000000; --accent: #8e8e8e; }
 body.tema-gamer { --primary: #0b0e11; --accent: #00ff41; }
 body.tema-cyberpunk { --primary: #03001c; --accent: #fee715; }
 body.tema-youtuber { --primary: #f00000; --accent: #ffffff; }
+body.tema-consultor { --primary: #2c3e50; --accent: #bdc3c7; }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -32,15 +37,18 @@ body { font-family: 'Montserrat', sans-serif; background: var(--white); color: v
 
 .header-container { display: flex; justify-content: space-between; align-items: center; width: 100%; }
 .logo-area { display: flex; align-items: center; gap: 10px; }
-.nav-logo { height: 45px; }
+.nav-logo { height: 45px; object-fit: contain; }
 .logo-text { color: white; font-weight: 600; font-size: 1.1rem; }
 .nav-menu a { color: white; text-decoration: none; margin-left: 20px; font-size: 0.8rem; text-transform: uppercase; }
 .btn-contato-nav { background: var(--accent); color: var(--primary) !important; padding: 8px 15px; border-radius: 4px; font-weight: bold; }
 
-/* HERO */
+/* HERO - Ajustado para aceitar imagem dinâmica */
 #hero {
     width: 100%; min-height: 90vh;
-    background: url('../assets/perfil_fundo.png') no-repeat center center/cover;
+    background-color: var(--primary); /* Cor de fundo caso não tenha imagem */
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-size: cover;
     margin-top: 70px;
 }
 
@@ -76,7 +84,7 @@ h2::after { content: ''; position: absolute; bottom: 0; left: 50%; transform: tr
 .stars { color: #f1c40f; margin-bottom: 10px; }
 .client-name { display: block; margin-top: 15px; font-weight: bold; color: var(--accent); }
 
-/* NOSSO ESPAÇO - AJUSTE DE ENQUADRAMENTO (FOCO NO ROSTO) */
+/* NOSSO ESPAÇO */
 .photo-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
 .office-photo img { 
     width: 100%; 
@@ -91,17 +99,15 @@ h2::after { content: ''; position: absolute; bottom: 0; left: 50%; transform: tr
 
 /* PUBLICAÇÕES */
 .pub-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
-.pub-item { position: relative; border-radius: 10px; overflow: hidden; height: 200px; background: #000; border: 1px solid var(--accent); }
+.pub-item { position: relative; border-radius: 10px; overflow: hidden; aspect-ratio: 16/9; background: #000; border: 1px solid var(--accent); }
 .pub-item img { width: 100%; height: 100%; object-fit: cover; opacity: 0.8; transition: 0.3s; }
 .play-overlay { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 3rem; color: #f00; pointer-events: none; }
 .pub-item:hover img { opacity: 1; transform: scale(1.05); }
-.insta-placeholder { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--accent); font-weight: bold; text-decoration: none; background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); color: white; }
 
 /* FOOTER */
 footer { background: var(--primary); color: white; padding: 60px 5%; text-align: center; border-top: 5px solid var(--accent); }
 .social-links { margin: 20px 0; }
 .social-links a, .social-links-contato a { color: var(--accent); font-size: 2rem; margin: 0 15px; transition: 0.3s; display: inline-block; background: var(--gold-gradient); background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-.social-links a:hover { transform: scale(1.2); }
 .footer-credits { margin-top: 30px; font-size: 0.8rem; opacity: 0.7; }
 
 /* FORMULÁRIO */

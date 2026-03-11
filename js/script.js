@@ -25,8 +25,22 @@ function aplicarDadosNoSite(data) {
     if(data.horario && document.getElementById('edit-horario')) document.getElementById('edit-horario').innerText = data.horario;
     if(data.copy && document.getElementById('edit-copyright')) document.getElementById('edit-copyright').innerText = data.copy;
 
-    // Fotos do Espaço
+    // --- NOVA LÓGICA DE FOTOS (PERFIL, LOGO E FUNDO) ---
     if (data.fotos) {
+        // 1. Logo (Canto Superior)
+        if(data.fotos.logo && document.querySelector('.nav-logo')) {
+            document.querySelector('.nav-logo').src = data.fotos.logo;
+        }
+        // 2. Fundo Hero (Imagem Grande de Fundo)
+        if(data.fotos.fundo && document.getElementById('hero')) {
+            document.getElementById('hero').style.backgroundImage = `url(${data.fotos.fundo})`;
+        }
+        // 3. Foto de Perfil (Círculo Central)
+        if(data.fotos.perfil && document.querySelector('.perfil-foto')) {
+            document.querySelector('.perfil-foto').src = data.fotos.perfil;
+        }
+        
+        // Fotos do Espaço (as 3 fotos da galeria que já existiam)
         for(let i=1; i<=3; i++) {
             const img = document.getElementById(`img-espaco-${i}`);
             if(img && data.fotos[`f${i}`]) img.src = data.fotos[`f${i}`];
@@ -46,7 +60,7 @@ function aplicarDadosNoSite(data) {
         }
     }
 
-    // Lógica de Ícones das Redes Sociais (Atualizada para detectar TikTok corretamente)
+    // Lógica de Ícones das Redes Sociais
     const getIcon = (u) => {
         const url = u.toLowerCase();
         if(url.includes('instagram')) return 'fab fa-instagram';
@@ -80,21 +94,18 @@ function aplicarDadosNoSite(data) {
                 const link = p.l.toLowerCase();
 
                 if (link.includes('instagram.com')) {
-                    // Card Personalizado Instagram - Proporção 16:9
                     thumbContent = `
                         <div class="insta-placeholder" style="background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%); aspect-ratio: 16/9; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; border-radius: 8px;">
                             <i class="fab fa-instagram" style="font-size: 2.5rem; margin-bottom: 5px;"></i>
                             <span style="font-weight: bold; font-size: 0.9rem;">Ver no Instagram</span>
                         </div>`;
                 } else if (link.includes('tiktok.com')) {
-                    // Card Personalizado TikTok - Proporção 16:9
                     thumbContent = `
                         <div class="tiktok-placeholder" style="background: #000; aspect-ratio: 16/9; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; border-radius: 8px; border: 1px solid #fe2c55;">
                             <i class="fab fa-tiktok" style="font-size: 2.5rem; margin-bottom: 5px; color: #25f4ee; text-shadow: 2px 0 #fe2c55;"></i>
                             <span style="font-weight: bold; font-size: 0.9rem;">Ver no TikTok</span>
                         </div>`;
                 } else if (link.includes('youtube.com') || link.includes('youtu.be')) {
-                    // Thumbnail YouTube - Proporção 16:9 com ajuste de cobertura
                     let videoId = "";
                     if (link.includes('shorts/')) {
                         videoId = p.l.split('shorts/')[1].split(/[?#]/)[0];
@@ -109,7 +120,6 @@ function aplicarDadosNoSite(data) {
                             <div class="play-overlay"><i class="fab fa-youtube"></i></div>
                         </div>`;
                 } else {
-                    // Link Genérico - Proporção 16:9
                     thumbContent = `
                         <div style="background: #333; aspect-ratio: 16/9; display: flex; align-items: center; justify-content: center; color: white; border-radius: 8px;">
                             <i class="fas fa-link" style="font-size: 2rem;"></i>
@@ -136,7 +146,6 @@ async function enviarLead(event) {
     btn.innerText = "Enviando...";
     btn.disabled = true;
 
-    // Captura dos dados
     const nome = document.getElementById('nome').value;
     const email = document.getElementById('email').value;
     const whatsapp = document.getElementById('telefone').value;
@@ -145,11 +154,9 @@ async function enviarLead(event) {
 
     const novoLead = { nome, email, whatsapp, assunto, mensagem };
 
-    // 1. Salva no Supabase (Tabela site_leads)
     const { error } = await supabaseClient.from('site_leads').insert([novoLead]);
 
     if (!error) {
-        // 2. Prepara e abre o WhatsApp da Dra. Gleyciane automaticamente
         const foneGley = "5519971284797";
         const textoMsg = `*Novo Contato pelo Site*\n\n*Nome:* ${nome}\n*Assunto:* ${assunto}\n*Mensagem:* ${mensagem}`;
         const urlWhatsApp = `https://api.whatsapp.com/send?phone=${foneGley}&text=${encodeURIComponent(textoMsg)}`;
@@ -158,7 +165,6 @@ async function enviarLead(event) {
         window.open(urlWhatsApp, '_blank');
         event.target.reset();
     } else {
-        console.error("Erro Supabase:", error.message);
         alert("Ocorreu um erro ao salvar sua mensagem. Por favor, utilize o botão flutuante do WhatsApp.");
     }
     
@@ -170,7 +176,6 @@ async function enviarLead(event) {
 async function inicializarSite() {
     console.log("Buscando dados no Supabase...");
     
-    // Tenta buscar da nuvem (ID 1)
     const { data, error } = await supabaseClient
         .from('site_config')
         .select('*')
@@ -181,22 +186,15 @@ async function inicializarSite() {
         console.log("Dados da nuvem carregados!", data);
         aplicarDadosNoSite(data);
     } else {
-        console.error("Falha ao carregar nuvem:", error);
-        // Fallback local se a nuvem falhar
         const localData = JSON.parse(localStorage.getItem('siteData'));
         if (localData) aplicarDadosNoSite(localData);
     }
 
-    // Registrar Analytics (Tabela site_visitas) - Garantindo que a RLS permita inserção
     supabaseClient.from('site_visitas').insert([{ 
         pagina: window.location.pathname, 
         origem: document.referrer || "Direto",
         dispositivo: window.innerWidth < 768 ? "Celular" : "Desktop"
-    }]).then(({ error }) => {
-        if (error) console.error("Erro ao registrar visita:", error.message);
-        else console.log("Visita registrada com sucesso.");
-    });
+    }]);
 }
 
-// Evento de carregamento robusto
 window.addEventListener('load', inicializarSite);
