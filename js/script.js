@@ -48,12 +48,14 @@ function aplicarDadosNoSite(data) {
 
     // Lógica de Ícones das Redes Sociais
     const getIcon = (u) => {
-        if(u.includes('instagram')) return 'fab fa-instagram';
-        if(u.includes('youtube')) return 'fab fa-youtube';
-        if(u.includes('whatsapp') || u.includes('wa.me')) return 'fab fa-whatsapp';
-        if(u.includes('linkedin')) return 'fab fa-linkedin';
-        if(u.includes('facebook')) return 'fab fa-facebook';
-        if(u.includes('x.com') || u.includes('twitter')) return 'fab fa-x-twitter';
+        const url = u.toLowerCase();
+        if(url.includes('instagram')) return 'fab fa-instagram';
+        if(url.includes('youtube')) return 'fab fa-youtube';
+        if(url.includes('tiktok')) return 'fab fa-tiktok';
+        if(url.includes('whatsapp') || url.includes('wa.me')) return 'fab fa-whatsapp';
+        if(url.includes('linkedin')) return 'fab fa-linkedin';
+        if(url.includes('facebook')) return 'fab fa-facebook';
+        if(url.includes('x.com') || url.includes('twitter')) return 'fab fa-x-twitter';
         return 'fas fa-link';
     };
 
@@ -67,7 +69,7 @@ function aplicarDadosNoSite(data) {
         if(footerRedes && redesHTML) footerRedes.innerHTML = redesHTML;
     }
 
-    // Publicações YT / Insta
+    // Publicações YT / Insta / TikTok
     const pubArea = document.getElementById('container-publicacoes');
     if(pubArea && data.pubs) {
         const pubsValidos = data.pubs.filter(p => p.l && p.l.trim() !== '');
@@ -75,20 +77,52 @@ function aplicarDadosNoSite(data) {
         if (pubsValidos.length > 0) {
             pubArea.innerHTML = pubsValidos.map(p => {
                 let thumbContent = "";
-                if (p.l.includes('instagram.com')) {
-                    thumbContent = `<div class="insta-placeholder"><i class="fab fa-instagram"></i> Ver no Instagram</div>`;
-                } else {
+                const link = p.l.toLowerCase();
+
+                if (link.includes('instagram.com')) {
+                    // Card Personalizado Instagram
+                    thumbContent = `
+                        <div class="insta-placeholder" style="background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%); height: 180px; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; border-radius: 8px;">
+                            <i class="fab fa-instagram" style="font-size: 2.5rem; margin-bottom: 10px;"></i>
+                            <span style="font-weight: bold;">Ver no Instagram</span>
+                        </div>`;
+                } else if (link.includes('tiktok.com')) {
+                    // Card Personalizado TikTok
+                    thumbContent = `
+                        <div class="tiktok-placeholder" style="background: #000; height: 180px; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; border-radius: 8px; border: 1px solid #fe2c55;">
+                            <i class="fab fa-tiktok" style="font-size: 2.5rem; margin-bottom: 10px; color: #25f4ee; text-shadow: 2px 0 #fe2c55;"></i>
+                            <span style="font-weight: bold;">Ver no TikTok</span>
+                        </div>`;
+                } else if (link.includes('youtube.com') || link.includes('youtu.be')) {
+                    // Thumbnail YouTube
                     let videoId = "";
-                    if (p.l.includes('shorts/')) {
+                    if (link.includes('shorts/')) {
                         videoId = p.l.split('shorts/')[1].split(/[?#]/)[0];
-                    } else if (p.l.includes('v=')) {
+                    } else if (link.includes('v=')) {
                         videoId = p.l.split('v=')[1].split('&')[0];
-                    } else if (p.l.includes('youtu.be/')) {
+                    } else if (link.includes('youtu.be/')) {
                         videoId = p.l.split('youtu.be/')[1].split(/[?#]/)[0];
                     }
-                    thumbContent = `<img src="https://img.youtube.com/vi/${videoId}/hqdefault.jpg"><div class="play-overlay"><i class="fab fa-youtube"></i></div>`;
+                    thumbContent = `
+                        <div style="position: relative;">
+                            <img src="https://img.youtube.com/vi/${videoId}/hqdefault.jpg" style="width: 100%; border-radius: 8px; display: block;">
+                            <div class="play-overlay"><i class="fab fa-youtube"></i></div>
+                        </div>`;
+                } else {
+                    // Link Genérico
+                    thumbContent = `
+                        <div style="background: #333; height: 180px; display: flex; align-items: center; justify-content: center; color: white; border-radius: 8px;">
+                            <i class="fas fa-link" style="font-size: 2rem;"></i>
+                        </div>`;
                 }
-                return `<div class="pub-container"><p class="pub-desc">${p.d}</p><div class="pub-item"><a href="${p.l}" target="_blank">${thumbContent}</a></div></div>`;
+
+                return `
+                    <div class="pub-container">
+                        <p class="pub-desc">${p.d}</p>
+                        <div class="pub-item">
+                            <a href="${p.l}" target="_blank">${thumbContent}</a>
+                        </div>
+                    </div>`;
             }).join('');
         }
     }
