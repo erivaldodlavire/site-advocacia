@@ -3,37 +3,62 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestão de Leads | Dra. Gleyciane</title>
+    <title>Gestão de Clientes | Dra. Gleyciane</title>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root { --primary: #001f3f; --accent: #e5c05b; }
+        :root { --primary: #001f3f; --accent: #e5c05b; --pendente: #ff4d4d; --andamento: #f1c40f; --concluido: #2ecc71; }
         body { font-family: 'Montserrat', sans-serif; background: #f0f2f5; margin: 0; padding: 20px; }
-        header { background: var(--primary); color: white; padding: 20px; text-align: center; border-radius: 10px; margin-bottom: 20px; }
-        .lead-card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin-bottom: 15px; border-left: 5px solid var(--accent); }
-        .lead-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 10px; }
-        .lead-name { font-weight: bold; font-size: 1.1rem; color: var(--primary); }
-        .lead-date { font-size: 0.8rem; color: #666; }
-        .lead-body p { margin: 5px 0; font-size: 0.9rem; }
-        .btn-zap { background: #25D366; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; text-decoration: none; display: inline-block; margin-top: 10px; font-weight: bold; }
+        header { background: var(--primary); color: white; padding: 20px; text-align: center; border-radius: 10px; margin-bottom: 20px; position: relative;}
+        .voltar { position: absolute; left: 20px; top: 30px; color: white; text-decoration: none; font-size: 0.9rem; }
+        
+        .filtros { display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; }
+        .filtro-btn { padding: 8px 15px; border-radius: 20px; border: none; cursor: pointer; font-weight: bold; background: white; transition: 0.3s; }
+        .filtro-btn.active { background: var(--accent); color: var(--primary); }
+
+        .lead-card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin-bottom: 15px; transition: 0.3s; }
+        .status-badge { padding: 5px 10px; border-radius: 5px; font-size: 0.7rem; font-weight: bold; text-transform: uppercase; color: white; }
+        
+        /* Cores Dinâmicas */
+        .status-novo { border-left: 8px solid var(--pendente); }
+        .bg-novo { background: var(--pendente); }
+        .status-andamento { border-left: 8px solid var(--andamento); }
+        .bg-andamento { background: var(--andamento); }
+        .status-concluido { border-left: 8px solid var(--concluido); opacity: 0.7; }
+        .bg-concluido { background: var(--concluido); }
+
+        .lead-header { display: flex; justify-content: space-between; align-items: start; margin-bottom: 10px; }
+        .lead-info p { margin: 3px 0; font-size: 0.9rem; color: #444; }
+        
+        .controles { margin-top: 15px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; border-top: 1px solid #eee; padding-top: 15px; }
+        .btn-zap { background: #25D366; color: white; border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer; text-decoration: none; font-size: 0.8rem; font-weight: bold; }
+        .select-status { padding: 5px; border-radius: 5px; font-size: 0.8rem; border: 1px solid #ccc; }
     </style>
 </head>
 <body>
 
 <header>
-    <h1>📋 Mensagens Recebidas</h1>
-    <p>Lista de potenciais clientes interessados</p>
+    <a href="admin.html" class="voltar"><i class="fas fa-arrow-left"></i> Painel Principal</a>
+    <h1>📋 Gestão de Clientes (Leads)</h1>
+    <p id="contador">Carregando resumo...</p>
 </header>
 
-<div id="leads-container">
-    <p style="text-align:center;">Carregando mensagens...</p>
+<div class="filtros">
+    <button class="filtro-btn active" onclick="filtrar('todos')">Todos</button>
+    <button class="filtro-btn" onclick="filtrar('Novo')">Novos</button>
+    <button class="filtro-btn" onclick="filtrar('Em Atendimento')">Em Atendimento</button>
+    <button class="filtro-btn" onclick="filtrar('Concluído')">Concluídos</button>
 </div>
+
+<div id="leads-container"></div>
 
 <script>
     const SUPABASE_URL = 'https://ueduzgoewlivkluiyqql.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVlZHV6Z29ld2xpdmtsdWl5cXFsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMxODAxMzAsImV4cCI6MjA4ODc1NjEzMH0.EM2s38El81fZYT-WVrxa7P_xX0e58EHQxdwreVgQecA';
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    let todosLeads = [];
 
     async function carregarLeads() {
         const { data, error } = await supabaseClient
@@ -41,33 +66,73 @@
             .select('*')
             .order('data_hora', { ascending: false });
 
-        if (error) {
-            document.getElementById('leads-container').innerHTML = "<p>Erro ao carregar dados.</p>";
-            return;
-        }
+        if (error) return alert("Erro ao carregar");
+        todosLeads = data;
+        renderizar(todosLeads);
+        atualizarContador();
+    }
 
-        if (data.length === 0) {
-            document.getElementById('leads-container').innerHTML = "<p style='text-align:center;'>Nenhuma mensagem recebida ainda.</p>";
-            return;
-        }
+    function renderizar(lista) {
+        const container = document.getElementById('leads-container');
+        container.innerHTML = lista.map(lead => {
+            const statusClass = lead.status === 'Concluído' ? 'status-concluido' : (lead.status === 'Em Atendimento' ? 'status-andamento' : 'status-novo');
+            const badgeClass = lead.status === 'Concluído' ? 'bg-concluido' : (lead.status === 'Em Atendimento' ? 'bg-andamento' : 'bg-novo');
+            
+            return `
+                <div class="lead-card ${statusClass}">
+                    <div class="lead-header">
+                        <div>
+                            <span class="status-badge ${badgeClass}">${lead.status || 'Novo'}</span>
+                            <div style="font-weight:bold; font-size:1.2rem; margin-top:5px; color:#001f3f;">${lead.nome}</div>
+                        </div>
+                        <span style="font-size:0.8rem; color:#666;">${new Date(lead.data_hora).toLocaleString('pt-BR')}</span>
+                    </div>
+                    <div class="lead-info">
+                        <p><strong>Assunto:</strong> ${lead.assunto}</p>
+                        <p><strong>Mensagem:</strong> ${lead.mensagem}</p>
+                        <p><strong>E-mail:</strong> ${lead.email}</p>
+                    </div>
+                    <div class="controles">
+                        <a href="https://api.whatsapp.com/send?phone=55${lead.whatsapp.replace(/\D/g,'')}" target="_blank" class="btn-zap">
+                            <i class="fab fa-whatsapp"></i> Chamar no Zap
+                        </a>
+                        <label style="font-size:0.7rem; font-weight:bold;">MUDAR STATUS:</label>
+                        <select class="select-status" onchange="alterarStatus(${lead.id}, this.value)">
+                            <option value="Novo" ${lead.status === 'Novo' ? 'selected' : ''}>Pendente</option>
+                            <option value="Em Atendimento" ${lead.status === 'Em Atendimento' ? 'selected' : ''}>Em Atendimento</option>
+                            <option value="Concluído" ${lead.status === 'Concluído' ? 'selected' : ''}>Concluído / Arquivar</option>
+                        </select>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
 
-        document.getElementById('leads-container').innerHTML = data.map(lead => `
-            <div class="lead-card">
-                <div class="lead-header">
-                    <span class="lead-name">${lead.nome}</span>
-                    <span class="lead-date">${new Date(lead.data_hora).toLocaleString('pt-BR')}</span>
-                </div>
-                <div class="lead-body">
-                    <p><strong>E-mail:</strong> ${lead.email}</p>
-                    <p><strong>WhatsApp:</strong> ${lead.whatsapp}</p>
-                    <p><strong>Assunto:</strong> ${lead.assunto}</p>
-                    <p><strong>Mensagem:</strong> ${lead.mensagem}</p>
-                    <a href="https://api.whatsapp.com/send?phone=55${lead.whatsapp.replace(/\D/g,'')}" target="_blank" class="btn-zap">
-                        <i class="fab fa-whatsapp"></i> Responder no WhatsApp
-                    </a>
-                </div>
-            </div>
-        `).join('');
+    async function alterarStatus(id, novoStatus) {
+        const { error } = await supabaseClient
+            .from('site_leads')
+            .update({ status: novoStatus })
+            .eq('id', id);
+
+        if (!error) carregarLeads();
+    }
+
+    function filtrar(status) {
+        // Estilo dos botões
+        document.querySelectorAll('.filtro-btn').forEach(btn => btn.classList.remove('active'));
+        event.target.classList.add('active');
+
+        if (status === 'todos') {
+            renderizar(todosLeads);
+        } else {
+            const filtrados = todosLeads.filter(l => l.status === status);
+            renderizar(filtrados);
+        }
+    }
+
+    function atualizarContador() {
+        const novos = todosLeads.filter(l => l.status === 'Novo' || !l.status).length;
+        document.getElementById('contador').innerText = `${todosLeads.length} contatos no total | ${novos} pendentes de resposta`;
     }
 
     window.onload = carregarLeads;
