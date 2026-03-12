@@ -27,16 +27,20 @@ function aplicarDadosNoSite(data) {
 
     // --- NOVA LÓGICA DE FOTOS (PERFIL, LOGO E FUNDO) ---
     if (data.fotos) {
+        // 1. Logo (Canto Superior)
         if(data.fotos.logo && document.querySelector('.nav-logo')) {
             document.querySelector('.nav-logo').src = data.fotos.logo;
         }
+        // 2. Fundo Hero (Imagem Grande de Fundo)
         if(data.fotos.fundo && document.getElementById('hero')) {
             document.getElementById('hero').style.backgroundImage = `url(${data.fotos.fundo})`;
         }
+        // 3. Foto de Perfil (Círculo Central)
         if(data.fotos.perfil && document.querySelector('.perfil-foto')) {
             document.querySelector('.perfil-foto').src = data.fotos.perfil;
         }
         
+        // Fotos do Espaço (as 3 fotos da galeria que já existiam)
         for(let i=1; i<=3; i++) {
             const img = document.getElementById(`img-espaco-${i}`);
             if(img && data.fotos[`f${i}`]) img.src = data.fotos[`f${i}`];
@@ -66,7 +70,6 @@ function aplicarDadosNoSite(data) {
         if(url.includes('linkedin')) return 'fab fa-linkedin';
         if(url.includes('facebook')) return 'fab fa-facebook';
         if(url.includes('x.com') || url.includes('twitter')) return 'fab fa-x-twitter';
-        if(url.includes('threads')) return 'fab fa-threads';
         return 'fas fa-link';
     };
 
@@ -74,7 +77,6 @@ function aplicarDadosNoSite(data) {
     const footerRedes = document.getElementById('edit-social-links-footer');
     
     if (data.redes) {
-        // O filter garante que apenas os links preenchidos (até os 10 novos) apareçam
         const redesHTML = data.redes.filter(l => l && l.trim() !== '').map(l => `
             <a href="${l}" target="_blank" class="icon-3d"><i class="${getIcon(l)}"></i></a>`).join('');
         if(redesArea && redesHTML) redesArea.innerHTML = redesHTML;
@@ -136,7 +138,7 @@ function aplicarDadosNoSite(data) {
     }
 }
 
-// 3. FUNÇÃO PARA ENVIAR CONTATO
+// 3. FUNÇÃO PARA ENVIAR CONTATO (SALVA NO BANCO + ABRE WHATSAPP)
 async function enviarLead(event) {
     event.preventDefault();
     const btn = event.target.querySelector('button');
@@ -170,7 +172,7 @@ async function enviarLead(event) {
     btn.disabled = false;
 }
 
-// 4. INICIALIZAÇÃO
+// 4. INICIALIZAÇÃO REFORÇADA E REGISTRO DE VISITA
 async function inicializarSite() {
     console.log("Buscando dados no Supabase...");
     
